@@ -1,4 +1,6 @@
-import twilio from 'twilio';
+import twilio, { validateRequest } from 'twilio';
+import type { NextRequest } from 'next/server';
+import { logger } from '@/lib/logger';
 
 function getClient() {
   const sid = process.env.TWILIO_ACCOUNT_SID;
@@ -25,6 +27,27 @@ export const twilioClient = new Proxy({} as ReturnType<typeof twilio>, {
     return value;
   },
 });
+
+/**
+ * Validates that an incoming request originates from Twilio by verifying
+ * the X-Twilio-Signature header against the request URL and POST params.
+ * Returns false (and logs a warning) if TWILIO_AUTH_TOKEN is not configured.
+ */
+export function validateTwilioSignature(
+  request: NextRequest,
+  params: Record<string, string>,
+): boolean {
+  const authToken = process.env.TWILIO_AUTH_TOKEN;
+  if (!authToken) {
+    logger.warn('twilio.validate_signature.missing_auth_token', {
+      url: request.url,
+      msg: 'TWILIO_AUTH_TOKEN is not set — rejecting request for safety',
+    });
+    return false;
+  }
+  const signature = request.headers.get('x-twilio-signature') ?? '';
+  return validateRequest(authToken, signature, request.url, params);
+}
 
 export async function sendSMS(to: string, body: string): Promise<void> {
   await getTwilioClient().messages.create({

@@ -6,6 +6,7 @@ import {
   sendPaymentFailedEmail,
   sendCancellationEmail,
 } from '@/lib/resend';
+import { logger } from '@/lib/logger';
 import type Stripe from 'stripe';
 import type { Tier } from '@/lib/constants';
 
@@ -14,10 +15,11 @@ export async function POST(request: NextRequest) {
   const signature = request.headers.get('stripe-signature');
 
   if (!signature) {
-    return NextResponse.json({ error: 'Missing signature' }, { status: 400 });
+    return NextResponse.json({ error: 'Missing signature' }, { status: 401 });
   }
 
   if (!process.env.STRIPE_WEBHOOK_SECRET) {
+    logger.error('stripe.webhook', { msg: 'STRIPE_WEBHOOK_SECRET is not configured' });
     return NextResponse.json({ error: 'Webhook secret not configured' }, { status: 500 });
   }
 
@@ -25,11 +27,13 @@ export async function POST(request: NextRequest) {
   try {
     event = stripe.webhooks.constructEvent(body, signature, process.env.STRIPE_WEBHOOK_SECRET);
   } catch (err) {
-    console.error('Webhook signature verification failed:', err);
-    return NextResponse.json({ error: 'Invalid signature' }, { status: 400 });
+    logger.error('stripe.webhook.signature_failed', { error: String(err) });
+    return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
   }
 
   const supabase = createAdminClient();
+
+  logger.info('stripe.webhook.received', { eventType: event.type, eventId: event.id });
 
   try {
     switch (event.type) {
@@ -40,6 +44,13 @@ export async function POST(request: NextRequest) {
         const tier = ((session.metadata?.tier as string) ?? 'starter') as Tier;
         const customerId = session.customer as string;
         const subscriptionId = session.subscription as string;
+
+        logger.info('stripe.checkout.completed', {
+          sessionId: session.id,
+          customerId,
+          tier,
+          amount: session.amount_total,
+        });
 
         if (!email) break;
 
@@ -65,6 +76,13 @@ export async function POST(request: NextRequest) {
         const tier = (sub.metadata?.tier ?? 'starter') as Tier;
         const status = sub.status === 'active' || sub.status === 'trialing' ? 'active' : 'inactive';
 
+        logger.info('stripe.subscription.updated', {
+          subscriptionId: sub.id,
+          customerId,
+          tier,
+          status,
+        });
+
         await supabase
           .from('profiles')
           .update({ tier, subscription_status: status, stripe_subscription_id: sub.id })
@@ -75,6 +93,8 @@ export async function POST(request: NextRequest) {
       case 'customer.subscription.deleted': {
         const sub = event.data.object as Stripe.Subscription;
         const customerId = sub.customer as string;
+
+        logger.info('stripe.subscription.deleted', { subscriptionId: sub.id, customerId });
 
         const { data: profile } = await supabase
           .from('profiles')
@@ -97,6 +117,12 @@ export async function POST(request: NextRequest) {
         const invoice = event.data.object as Stripe.Invoice;
         const customerId = invoice.customer as string;
 
+        logger.warn('stripe.invoice.payment_failed', {
+          invoiceId: invoice.id,
+          customerId,
+          amount: invoice.amount_due,
+        });
+
         const { data: profile } = await supabase
           .from('profiles')
           .select('email, business_name')
@@ -113,7 +139,7 @@ export async function POST(request: NextRequest) {
         break;
     }
   } catch (err) {
-    console.error('Webhook handler error:', err);
+    logger.error('stripe.webhook.handler_error', { eventType: event.type, error: String(err) });
     return NextResponse.json({ error: 'Webhook processing failed' }, { status: 500 });
   }
 
