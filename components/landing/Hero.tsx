@@ -17,21 +17,20 @@ export function Hero() {
         </div>
 
         <h1 className="mb-6 text-4xl font-bold leading-tight tracking-tight text-white sm:text-5xl md:text-6xl">
-          Your Business Never{' '}
+          Never Miss a{' '}
           <span className="bg-gradient-to-r from-blue-400 to-blue-600 bg-clip-text text-transparent">
-            Misses Another Call
+            Call Again
           </span>
         </h1>
 
         <p className="mx-auto mb-10 max-w-2xl text-lg leading-relaxed text-gray-400 sm:text-xl">
-          24hrreceptionist answers every call, captures every lead, and delivers the info
-          straight to you — 24/7, no staff required.
+          AI-powered 24/7 receptionist for your business
         </p>
 
         <div className="flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
           <Link href="/signup">
             <Button size="lg" className="w-full sm:w-auto">
-              Start Free Trial →
+              Start 24/7 Receptionist
             </Button>
           </Link>
           <Link href="#how-it-works">
