@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/server';
 import { appendRow } from '@/lib/sheets';
 import { sendWelcomeEmail } from '@/lib/resend';
+import { logger } from '@/lib/logger';
 
 interface TallyField {
   key: string;
@@ -77,7 +78,7 @@ export async function POST(request: NextRequest) {
           `Industry: ${industry}. Heard via: ${howHeard}`,
         ]);
       } catch (sheetErr) {
-        console.error('Failed to sync to Google Sheets:', sheetErr);
+        logger.error('tally.sheets_sync_error', { error: String(sheetErr) });
       }
     }
 
@@ -85,7 +86,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Tally webhook error:', error);
+    logger.error('tally.webhook_error', { error: String(error) });
     return NextResponse.json({ error: 'Failed to process submission' }, { status: 500 });
   }
 }
