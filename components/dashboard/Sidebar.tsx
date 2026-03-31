@@ -9,6 +9,8 @@ import { cn } from '@/lib/utils';
 const navItems = [
   { href: '/dashboard', label: 'Overview', icon: '📊' },
   { href: '/dashboard/calls', label: 'Call Log', icon: '📞' },
+  { href: '/dashboard/leads', label: 'Lead Inbox', icon: '🎯' },
+  { href: '/dashboard/appointments', label: 'Appointments', icon: '📅' },
   { href: '/dashboard/settings', label: 'Settings', icon: '⚙️' },
 ];
 
