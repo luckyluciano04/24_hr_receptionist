@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { logger } from '@/lib/logger';
 
 export async function GET(request: NextRequest) {
   try {
@@ -43,7 +44,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ calls });
   } catch (error) {
-    console.error('Get calls error:', error);
+    logger.error('calls.get_error', { error: String(error) });
     return NextResponse.json({ error: 'Failed to fetch calls' }, { status: 500 });
   }
 }
@@ -76,7 +77,7 @@ export async function DELETE(request: NextRequest) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Delete call error:', error);
+    logger.error('calls.delete_error', { error: String(error) });
     return NextResponse.json({ error: 'Failed to delete call' }, { status: 500 });
   }
 }

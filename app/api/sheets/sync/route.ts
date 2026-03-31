@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/server';
 import { appendRow } from '@/lib/sheets';
+import { logger } from '@/lib/logger';
 
 interface SyncPayload {
   profileId: string;
@@ -50,7 +51,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Sheets sync error:', error);
+    logger.error('sheets.sync_error', { error: String(error) });
     return NextResponse.json({ error: 'Failed to sync to Google Sheets' }, { status: 500 });
   }
 }

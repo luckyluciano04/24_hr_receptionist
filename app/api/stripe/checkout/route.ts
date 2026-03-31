@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { stripe } from '@/lib/stripe';
 import { STRIPE_PRICE_IDS, TRIAL_PERIOD_DAYS, APP_URL, type Tier } from '@/lib/constants';
 import { createAdminClient } from '@/lib/supabase/server';
+import { logger } from '@/lib/logger';
 
 export async function POST(request: NextRequest) {
   try {
@@ -59,14 +60,12 @@ export async function POST(request: NextRequest) {
       success_url: `${APP_URL}/onboarding?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${APP_URL}/pricing`,
       allow_promotion_codes: true,
-      // customer_email must be omitted when customer is provided (Stripe API requirement)
-      customer_email: customerId ? undefined : email,
       metadata: { tier, businessName, email },
     });
 
     return NextResponse.json({ url: session.url });
   } catch (error) {
-    console.error('Stripe checkout error:', error);
+    logger.error('stripe.checkout_error', { error: String(error) });
     return NextResponse.json({ error: 'Failed to create checkout session' }, { status: 500 });
   }
 }

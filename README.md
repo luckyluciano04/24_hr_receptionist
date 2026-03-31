@@ -10,7 +10,7 @@ AI-powered receptionist service for small businesses. Answers every call, captur
 
 | Layer | Technology |
 |-------|-----------|
-| Frontend | Next.js 14 (App Router), TypeScript, Tailwind CSS |
+| Frontend | Next.js 15 (App Router), TypeScript, Tailwind CSS |
 | Backend | Next.js API routes (serverless) |
 | Database | Supabase (Postgres + Auth) |
 | Payments | Stripe Checkout + Webhooks + Billing Portal |
@@ -69,7 +69,7 @@ Open `.env.local` and fill in every value (see sections below for how to get eac
    - `Project URL` → `NEXT_PUBLIC_SUPABASE_URL`
    - `anon public` key → `NEXT_PUBLIC_SUPABASE_ANON_KEY`
    - `service_role` key → `SUPABASE_SERVICE_ROLE_KEY`
-3. Go to **SQL Editor** and run the contents of `supabase/migrations/001_initial_schema.sql`
+3. Go to **SQL Editor** and run the contents of `supabase/migrations/001_initial_schema.sql`, then `supabase/migrations/002_functions.sql`
 4. Enable **Email auth** under Authentication → Providers
 
 ### 4. Set up Stripe

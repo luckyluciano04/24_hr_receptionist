@@ -135,7 +135,7 @@ export async function PUT(request: NextRequest) {
       .eq('twilio_call_sid', callSid);
 
     // Increment call count
-    await supabase.rpc('increment_calls', { profile_id: call.profile_id });
+    await supabase.rpc('increment_calls', { p_profile_id: call.profile_id });
 
     const deliveredVia: string[] = [];
 
