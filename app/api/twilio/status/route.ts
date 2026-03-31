@@ -1,16 +1,30 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/server';
+import { validateTwilioSignature } from '@/lib/twilio';
+import { logger } from '@/lib/logger';
 
 export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData();
-    const callSid = formData.get('CallSid') as string;
-    const callStatus = formData.get('CallStatus') as string;
-    const duration = formData.get('CallDuration') as string;
+    const params: Record<string, string> = {};
+    formData.forEach((value, key) => {
+      params[key] = String(value);
+    });
+
+    if (!validateTwilioSignature(request, params)) {
+      logger.warn('twilio.status.invalid_signature', { url: request.url });
+      return new NextResponse(null, { status: 401 });
+    }
+
+    const callSid = params['CallSid'] ?? '';
+    const callStatus = params['CallStatus'] ?? '';
+    const duration = params['CallDuration'] ?? '';
 
     if (!callSid) {
       return NextResponse.json({ error: 'Missing CallSid' }, { status: 400 });
     }
+
+    logger.info('twilio.status.update', { callSid, callStatus, duration });
 
     const supabase = createAdminClient();
 
@@ -23,7 +37,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ received: true });
   } catch (error) {
-    console.error('Twilio status callback error:', error);
+    logger.error('twilio.status.error', { error: String(error) });
     return NextResponse.json({ error: 'Failed to process status update' }, { status: 500 });
   }
 }

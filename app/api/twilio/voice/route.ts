@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/server';
 import { buildSystemPrompt } from '@/lib/openai';
-import { sendSMS } from '@/lib/twilio';
+import { sendSMS, validateTwilioSignature } from '@/lib/twilio';
 import { sendCallNotificationEmail } from '@/lib/resend';
 import { appendRow } from '@/lib/sheets';
+import { logger } from '@/lib/logger';
 
 // XML-escape a value for use in TwiML attributes
 function xmlEscape(str: string): string {
@@ -18,9 +19,21 @@ function xmlEscape(str: string): string {
 export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData();
-    const calledNumber = formData.get('To') as string;
-    const callerPhone = formData.get('From') as string;
-    const callSid = formData.get('CallSid') as string;
+    const params: Record<string, string> = {};
+    formData.forEach((value, key) => {
+      params[key] = String(value);
+    });
+
+    if (!validateTwilioSignature(request, params)) {
+      logger.warn('twilio.voice.invalid_signature', { url: request.url });
+      return new NextResponse(null, { status: 401 });
+    }
+
+    const calledNumber = params['To'] ?? '';
+    const callerPhone = params['From'] ?? '';
+    const callSid = params['CallSid'] ?? '';
+
+    logger.info('twilio.voice.incoming', { callSid, callerPhone, calledNumber });
 
     if (!calledNumber) {
       return new NextResponse(
@@ -71,7 +84,7 @@ export async function POST(request: NextRequest) {
       headers: { 'Content-Type': 'text/xml' },
     });
   } catch (error) {
-    console.error('Twilio voice webhook error:', error);
+    logger.error('twilio.voice.error', { error: String(error) });
     return new NextResponse(
       '<?xml version="1.0" encoding="UTF-8"?><Response><Say>We\'re sorry, an error occurred. Please try again later.</Say></Response>',
       { headers: { 'Content-Type': 'text/xml' } },
@@ -126,6 +139,8 @@ export async function PUT(request: NextRequest) {
 
     const deliveredVia: string[] = [];
 
+    logger.info('twilio.call.completed', { callSid, callerName, duration });
+
     // Send notifications
     if (profile?.email) {
       try {
@@ -139,7 +154,7 @@ export async function PUT(request: NextRequest) {
         );
         deliveredVia.push('email');
       } catch (err) {
-        console.error('Failed to send call notification email:', err);
+        logger.error('twilio.call.email_failed', { callSid, error: String(err) });
       }
     }
 
@@ -151,7 +166,7 @@ export async function PUT(request: NextRequest) {
         );
         deliveredVia.push('sms');
       } catch (err) {
-        console.error('Failed to send SMS notification:', err);
+        logger.error('twilio.call.sms_failed', { callSid, error: String(err) });
       }
     }
 
@@ -170,7 +185,7 @@ export async function PUT(request: NextRequest) {
           summary,
         ]);
       } catch (err) {
-        console.error('Failed to sync call to Google Sheets:', err);
+        logger.error('twilio.call.sheets_failed', { callSid, error: String(err) });
       }
     }
 
@@ -181,7 +196,7 @@ export async function PUT(request: NextRequest) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Call completion error:', error);
+    logger.error('twilio.call.completion_error', { error: String(error) });
     return NextResponse.json({ error: 'Failed to process call completion' }, { status: 500 });
   }
 }
