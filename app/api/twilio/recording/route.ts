@@ -80,7 +80,7 @@ export async function POST(request: NextRequest) {
     try {
       summary = await generateCallSummary(transcriptionText);
       // Attempt to extract caller name from transcript
-      const nameMatch = transcriptionText.match(/(?:my name is|this is|i'm|i am)\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)?)/i);
+      const nameMatch = transcriptionText.match(/(?:my name is|this is|i'm|i am)\s+([a-zA-Z]+(?:\s+[a-zA-Z]+)?)/i);
       if (nameMatch?.[1]) {
         callerName = nameMatch[1];
       }
@@ -97,7 +97,7 @@ export async function POST(request: NextRequest) {
         call_summary: summary,
         call_duration_seconds: duration,
         status: 'completed',
-        recording_url: recordingUrl || null,
+        recording_url: recordingUrl ? recordingUrl : null,
       })
       .eq('twilio_call_sid', callSid);
 
