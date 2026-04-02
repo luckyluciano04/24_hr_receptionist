@@ -19,11 +19,15 @@ export async function GET(request: NextRequest) {
     }
 
     // Resolve call_sids belonging to this user
-    const { data: calls } = await supabase
+    const { data: calls, error: callsError } = await supabase
       .from('calls')
       .select('twilio_call_sid')
       .eq('profile_id', user.id);
 
+    if (callsError) {
+      console.error('Calls fetch error:', callsError);
+      return NextResponse.json({ error: 'Failed to fetch calls' }, { status: 500 });
+    }
     const callSids = (calls ?? []).map((c) => c.twilio_call_sid).filter(Boolean) as string[];
 
     const { searchParams } = new URL(request.url);
