@@ -19,25 +19,26 @@ const REQUIRED_PUBLIC_VARS = [
 
 export async function GET() {
   try {
-    const missing: string[] = [];
+    let missingCount = 0;
 
     for (const key of REQUIRED_SERVER_VARS) {
-      if (!process.env[key]) missing.push(key);
+      if (!process.env[key]) missingCount++;
     }
 
     for (const key of REQUIRED_PUBLIC_VARS) {
-      if (!process.env[key]) missing.push(key);
+      if (!process.env[key]) missingCount++;
     }
 
-    if (missing.length > 0) {
+    if (missingCount > 0) {
+      // Do not expose which variables are missing to avoid leaking configuration details.
       return NextResponse.json(
-        { status: 'missing', missing },
+        { status: 'missing', count: missingCount },
         { status: 500 },
       );
     }
 
     return NextResponse.json({ status: 'ok', loaded: REQUIRED_SERVER_VARS.length + REQUIRED_PUBLIC_VARS.length });
   } catch (error) {
-    return NextResponse.json({ status: 'error', message: String(error) }, { status: 500 });
+    return NextResponse.json({ status: 'error' }, { status: 500 });
   }
 }
