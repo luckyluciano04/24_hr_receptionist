@@ -6,6 +6,8 @@ import { sendCallNotificationEmail } from '@/lib/resend';
 import { appendRow } from '@/lib/sheets';
 import { logger } from '@/lib/logger';
 
+export const maxDuration = 30;
+
 // XML-escape a value for use in TwiML attributes
 function xmlEscape(str: string): string {
   return str
