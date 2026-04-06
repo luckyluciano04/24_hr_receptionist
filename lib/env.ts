@@ -1,34 +1,14 @@
 /**
  * Runtime environment variable validation.
  * Import this module in server-side code to ensure required vars are present.
- * Throws an explicit error at startup (fail-fast) if any required var is missing.
+ * Call requireEnv() to get a required variable; it throws if the value is absent.
  */
 
-const REQUIRED_SERVER_ENV_VARS = [
-  'STRIPE_SECRET_KEY',
-  'STRIPE_WEBHOOK_SECRET',
-  'TWILIO_ACCOUNT_SID',
-  'TWILIO_AUTH_TOKEN',
-] as const;
-
-type RequiredEnvVar = (typeof REQUIRED_SERVER_ENV_VARS)[number];
-
-function validateEnv(): void {
-  const missing: string[] = [];
-
-  for (const key of REQUIRED_SERVER_ENV_VARS) {
-    if (!process.env[key]) {
-      missing.push(key);
-    }
-  }
-
-  if (missing.length > 0) {
-    throw new Error(
-      `[env] Missing required environment variables: ${missing.join(', ')}. ` +
-        'Set them in your .env file or hosting environment.',
-    );
-  }
-}
+type RequiredEnvVar =
+  | 'STRIPE_SECRET_KEY'
+  | 'STRIPE_WEBHOOK_SECRET'
+  | 'TWILIO_ACCOUNT_SID'
+  | 'TWILIO_AUTH_TOKEN';
 
 /**
  * Returns a required environment variable, throwing if it is absent.
@@ -41,6 +21,3 @@ export function requireEnv(key: RequiredEnvVar): string {
   }
   return value;
 }
-
-// Validate on module load so misconfigured deployments fail immediately.
-validateEnv();

@@ -1,15 +1,14 @@
 #!/usr/bin/env node
 /**
- * Pre-build environment variable gate.
- * Exits with code 1 if any required server-side variable is missing,
- * preventing a broken deployment from reaching Vercel.
- *
- * Add to package.json: "prebuild": "node scripts/check-env.js"
+ * Pre-build environment variable check.
+ * Warns about missing variables so developers know what to configure,
+ * but does not block the build — the public landing page works without
+ * all secrets, and API-route failures are surfaced at runtime only.
  */
 
 'use strict';
 
-const REQUIRED = [
+const PRODUCTION_REQUIRED = [
   'STRIPE_SECRET_KEY',
   'STRIPE_WEBHOOK_SECRET',
   'TWILIO_ACCOUNT_SID',
@@ -23,17 +22,16 @@ const REQUIRED = [
   'NEXT_PUBLIC_APP_URL',
 ];
 
-const missing = REQUIRED.filter((key) => !process.env[key]);
+const missing = PRODUCTION_REQUIRED.filter((key) => !process.env[key]);
 
 if (missing.length > 0) {
-  console.error(
-    '[check-env] ❌ Build blocked — missing required environment variables:\n  ' +
+  console.warn(
+    '[check-env] ⚠️  Missing environment variables (set these before going live):\n  ' +
       missing.join('\n  '),
   );
-  console.error(
+  console.warn(
     '[check-env] Set these in your .env file (local) or hosting environment (Vercel).',
   );
-  process.exit(1);
+} else {
+  console.log('[check-env] ✅ All environment variables are present.');
 }
-
-console.log('[check-env] ✅ All required environment variables are present.');

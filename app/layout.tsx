@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
+import { APP_URL } from "@/lib/constants";
 import "./globals.css";
 
 const geistSans = localFont({
@@ -9,6 +10,7 @@ const geistSans = localFont({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(APP_URL),
   title: "24hr Receptionist — Never Miss Another Call",
   description:
     "AI-powered receptionist that answers every call, captures every lead, and delivers the info straight to you — 24/7, no staff required.",
