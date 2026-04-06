@@ -3,6 +3,8 @@ import { createAdminClient } from '@/lib/supabase/server';
 import { appendRow } from '@/lib/sheets';
 import { sendWelcomeEmail } from '@/lib/resend';
 
+export const maxDuration = 30;
+
 interface TallyField {
   key: string;
   label: string;

@@ -10,6 +10,8 @@ import { logger } from '@/lib/logger';
 import type Stripe from 'stripe';
 import type { Tier } from '@/lib/constants';
 
+export const maxDuration = 30;
+
 export async function POST(request: NextRequest) {
   const body = await request.text();
   const signature = request.headers.get('stripe-signature');

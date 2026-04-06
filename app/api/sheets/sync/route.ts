@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/server';
 import { appendRow } from '@/lib/sheets';
 
+export const maxDuration = 60;
+
 interface SyncPayload {
   profileId: string;
   email: string;

@@ -3,6 +3,8 @@ import { createAdminClient } from '@/lib/supabase/server';
 import { validateTwilioSignature } from '@/lib/twilio';
 import { logger } from '@/lib/logger';
 
+export const maxDuration = 30;
+
 export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData();
