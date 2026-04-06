@@ -202,14 +202,76 @@ In Twilio Console → Phone Numbers → Your Number:
 
 ## Deployment to Vercel
 
-### Initial deploy
+### Deleting an existing Vercel project
+
+If you need to remove an old or misconfigured Vercel project (e.g. `24-hr-receptionist-yocx`):
+
+1. Go to [vercel.com/dashboard](https://vercel.com/dashboard)
+2. Select the project you want to delete
+3. Click **Settings** (top navigation tab)
+4. Scroll to the bottom of the Settings page to the **Danger Zone** section
+5. Click **Delete Project** and confirm
+
+### Creating a fresh Vercel project
 
 ```bash
 npm install -g vercel
 vercel
 ```
 
-### Set environment variables
+Follow the prompts to link to your GitHub repository and choose a project name.
+
+### Required Environment Variables
+
+The build will **fail** if any of the following variables are missing. They must all be set before the first successful deployment.
+
+| Variable | Description | Where to get it |
+|---|---|---|
+| `NEXT_PUBLIC_SUPABASE_URL` | Supabase project URL | Supabase Dashboard → Settings → API → Project URL |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase anon/public key | Supabase Dashboard → Settings → API → `anon public` |
+| `SUPABASE_SERVICE_ROLE_KEY` | Supabase service role key (secret) | Supabase Dashboard → Settings → API → `service_role` |
+| `STRIPE_SECRET_KEY` | Stripe secret API key | Stripe Dashboard → Developers → API keys → Secret key |
+| `STRIPE_WEBHOOK_SECRET` | Stripe webhook signing secret | Stripe Dashboard → Developers → Webhooks → your endpoint → Signing secret |
+| `STRIPE_PRICE_STARTER` | Stripe price ID for Starter plan ($97/mo) | Stripe Dashboard → Products → Starter → Price ID (`price_...`) |
+| `STRIPE_PRICE_PROFESSIONAL` | Stripe price ID for Professional plan ($197/mo) | Stripe Dashboard → Products → Professional → Price ID |
+| `STRIPE_PRICE_ENTERPRISE` | Stripe price ID for Enterprise plan ($397/mo) | Stripe Dashboard → Products → Enterprise → Price ID |
+| `TWILIO_ACCOUNT_SID` | Twilio Account SID | Twilio Console → Dashboard (`AC...`) |
+| `TWILIO_AUTH_TOKEN` | Twilio Auth Token | Twilio Console → Dashboard |
+| `TWILIO_PHONE_NUMBER` | Twilio phone number in E.164 format | Twilio Console → Phone Numbers (e.g. `+12025550100`) |
+| `OPENAI_API_KEY` | OpenAI API key | platform.openai.com → API keys (`sk-...`) |
+| `RESEND_API_KEY` | Resend API key | resend.com → API Keys (`re_...`) |
+| `GOOGLE_SERVICE_ACCOUNT_JSON` | Google Service Account credentials as a single-line JSON string | Google Cloud Console → IAM & Admin → Service Accounts → Keys → JSON (see note below) |
+| `NEXT_PUBLIC_APP_URL` | Your production URL (must be a valid absolute URL) | Your custom domain or Vercel URL, e.g. `https://24hrreceptionist.com` |
+
+> **Note on `GOOGLE_SERVICE_ACCOUNT_JSON`:** Download the JSON key file from Google Cloud, then convert it to a single-line string:
+> ```bash
+> cat service-account.json | python3 -c "import json,sys; print(json.dumps(json.load(sys.stdin)))"
+> ```
+> Paste the entire output as the value of this variable.
+
+### Optional Environment Variables
+
+These are not required to build but enable additional features:
+
+| Variable | Description | Where to get it |
+|---|---|---|
+| `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Stripe publishable key (for frontend Stripe.js) | Stripe Dashboard → Developers → API keys → Publishable key |
+| `NEXT_PUBLIC_TALLY_FORM_ID` | Tally form ID for intake forms | tally.so → your form URL (e.g. `mVZXk7`) |
+
+### Setting Environment Variables in the Vercel Dashboard
+
+1. Go to [vercel.com/dashboard](https://vercel.com/dashboard)
+2. Click on your project
+3. Click the **Settings** tab
+4. Click **Environment Variables** in the left sidebar
+5. For each variable in the table above:
+   - Enter the **Name** (e.g. `STRIPE_SECRET_KEY`)
+   - Enter the **Value**
+   - Select environments: **Production**, **Preview**, and **Development** as appropriate
+   - Click **Save**
+6. After all variables are added, go to the **Deployments** tab and click **Redeploy** on the latest deployment
+
+### Setting Environment Variables via CLI
 
 ```bash
 vercel env add NEXT_PUBLIC_SUPABASE_URL
@@ -227,9 +289,11 @@ vercel env add OPENAI_API_KEY
 vercel env add RESEND_API_KEY
 vercel env add GOOGLE_SERVICE_ACCOUNT_JSON
 vercel env add NEXT_PUBLIC_APP_URL
+vercel env add NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+vercel env add NEXT_PUBLIC_TALLY_FORM_ID
 ```
 
-### Redeploy with env vars
+### Redeploy after adding env vars
 
 ```bash
 vercel --prod
