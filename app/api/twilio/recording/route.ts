@@ -6,6 +6,23 @@ import { validateTwilioSignature } from '@/lib/twilio';
 
 export const maxDuration = 60;
 
+function normalizeTwilioRecordingUrl(recordingUrl: string): string {
+  const parsed = new URL(recordingUrl);
+  const isTrustedHost =
+    parsed.protocol === 'https:' &&
+    (parsed.hostname === 'api.twilio.com' || parsed.hostname.endsWith('.twilio.com'));
+
+  if (!isTrustedHost) {
+    throw new Error('Untrusted Twilio recording URL');
+  }
+
+  if (!parsed.pathname.endsWith('.mp3')) {
+    parsed.pathname = `${parsed.pathname}.mp3`;
+  }
+
+  return parsed.toString();
+}
+
 function twimlMessage(message: string): NextResponse {
   return new NextResponse(
     `<?xml version="1.0" encoding="UTF-8"?><Response><Say voice="Polly.Joanna">${message}</Say></Response>`,
@@ -21,7 +38,7 @@ async function fetchRecording(recordingUrl: string): Promise<File> {
     throw new Error('Missing Twilio credentials for recording fetch');
   }
 
-  const url = recordingUrl.endsWith('.mp3') ? recordingUrl : `${recordingUrl}.mp3`;
+  const url = normalizeTwilioRecordingUrl(recordingUrl);
   const auth = Buffer.from(`${sid}:${token}`).toString('base64');
   const response = await fetch(url, {
     headers: { Authorization: `Basic ${auth}` },
