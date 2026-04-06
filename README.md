@@ -10,7 +10,7 @@ AI-powered receptionist service for small businesses. Answers every call, captur
 
 | Layer | Technology |
 |-------|-----------|
-| Frontend | Next.js 14 (App Router), TypeScript, Tailwind CSS |
+| Frontend | Next.js 15 (App Router), TypeScript, Tailwind CSS |
 | Backend | Next.js API routes (serverless) |
 | Database | Supabase (Postgres + Auth) |
 | Payments | Stripe Checkout + Webhooks + Billing Portal |
