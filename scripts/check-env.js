@@ -39,7 +39,19 @@ if (missing.length > 0) {
       missing.join('\n  '),
   );
   console.error(
-    '[check-env] Set these in your .env file (local) or hosting environment (Vercel).',
+    '[check-env] ➜  To fix this on Vercel:',
+  );
+  console.error(
+    '[check-env]    1. Go to your Vercel project → Settings → Environment Variables',
+  );
+  console.error(
+    '[check-env]    2. Add each missing variable listed above',
+  );
+  console.error(
+    '[check-env]    3. Redeploy — the build will succeed once all variables are present',
+  );
+  console.error(
+    '[check-env] ➜  For local development: copy .env.example to .env.local and fill in the values.',
   );
   process.exit(1);
 }
