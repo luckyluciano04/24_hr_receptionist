@@ -6,21 +6,19 @@ import { validateTwilioSignature } from '@/lib/twilio';
 
 export const maxDuration = 60;
 
-function normalizeTwilioRecordingUrl(recordingUrl: string): string {
-  const parsed = new URL(recordingUrl);
-  const isTrustedHost =
-    parsed.protocol === 'https:' &&
-    (parsed.hostname === 'api.twilio.com' || parsed.hostname.endsWith('.twilio.com'));
-
-  if (!isTrustedHost) {
-    throw new Error('Untrusted Twilio recording URL');
+function buildTwilioRecordingUrl(accountSid: string, recordingSid: string): string {
+  if (!/^AC[a-zA-Z0-9]{32}$/.test(accountSid)) {
+    throw new Error('Invalid Twilio account SID');
   }
 
-  if (!parsed.pathname.endsWith('.mp3')) {
-    parsed.pathname = `${parsed.pathname}.mp3`;
+  if (!/^RE[a-zA-Z0-9]{32}$/.test(recordingSid)) {
+    throw new Error('Invalid Twilio recording SID');
   }
 
-  return parsed.toString();
+  return new URL(
+    `/2010-04-01/Accounts/${encodeURIComponent(accountSid)}/Recordings/${encodeURIComponent(recordingSid)}.mp3`,
+    'https://api.twilio.com',
+  ).toString();
 }
 
 function twimlMessage(message: string): NextResponse {
@@ -30,7 +28,7 @@ function twimlMessage(message: string): NextResponse {
   );
 }
 
-async function fetchRecording(recordingUrl: string): Promise<File> {
+async function fetchRecording(recordingSid: string): Promise<File> {
   const sid = process.env.TWILIO_ACCOUNT_SID;
   const token = process.env.TWILIO_AUTH_TOKEN;
 
@@ -38,7 +36,7 @@ async function fetchRecording(recordingUrl: string): Promise<File> {
     throw new Error('Missing Twilio credentials for recording fetch');
   }
 
-  const url = normalizeTwilioRecordingUrl(recordingUrl);
+  const url = buildTwilioRecordingUrl(sid, recordingSid);
   const auth = Buffer.from(`${sid}:${token}`).toString('base64');
   const response = await fetch(url, {
     headers: { Authorization: `Basic ${auth}` },
@@ -67,14 +65,14 @@ export async function POST(request: NextRequest) {
     }
 
     const callSid = params['CallSid'] ?? '';
-    const recordingUrl = params['RecordingUrl'] ?? '';
+    const recordingSid = params['RecordingSid'] ?? '';
     const duration = parseInt(params['RecordingDuration'] ?? '0', 10) || 0;
 
-    if (!callSid || !recordingUrl) {
+    if (!callSid || !recordingSid) {
       return twimlMessage('We could not process your message. Please call back later. Goodbye.');
     }
 
-    const file = await fetchRecording(recordingUrl);
+    const file = await fetchRecording(recordingSid);
     const transcript = await transcribeAudio(file);
     const { callerName, summary } = await generateCallInsights(transcript);
     const completed = await completeCall({
