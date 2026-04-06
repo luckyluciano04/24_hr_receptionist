@@ -9,6 +9,10 @@
 
 'use strict';
 
+const { loadEnvConfig } = require('@next/env');
+
+loadEnvConfig(process.cwd());
+
 const REQUIRED = [
   'STRIPE_SECRET_KEY',
   'STRIPE_WEBHOOK_SECRET',

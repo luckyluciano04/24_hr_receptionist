@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
 
+const metadataBase = new URL(process.env.NEXT_PUBLIC_APP_URL ?? "https://24hrreceptionist.com");
+
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
   variable: "--font-geist-sans",
@@ -9,6 +11,7 @@ const geistSans = localFont({
 });
 
 export const metadata: Metadata = {
+  metadataBase,
   title: "24hr Receptionist — Never Miss Another Call",
   description:
     "AI-powered receptionist that answers every call, captures every lead, and delivers the info straight to you — 24/7, no staff required.",
