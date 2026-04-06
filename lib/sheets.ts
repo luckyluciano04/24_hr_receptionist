@@ -18,7 +18,18 @@ function getAuth() {
   if (!raw) {
     throw new Error('Missing GOOGLE_SERVICE_ACCOUNT_JSON environment variable');
   }
-  const credentials = JSON.parse(raw) as Record<string, string>;
+
+  let credentials: Record<string, string>;
+  try {
+    credentials = JSON.parse(raw) as Record<string, string>;
+  } catch {
+    throw new Error('GOOGLE_SERVICE_ACCOUNT_JSON must be valid JSON');
+  }
+
+  if (!credentials.client_email || !credentials.private_key) {
+    throw new Error('GOOGLE_SERVICE_ACCOUNT_JSON is missing required service account fields');
+  }
+
   return new google.auth.GoogleAuth({
     credentials,
     scopes: ['https://www.googleapis.com/auth/spreadsheets'],

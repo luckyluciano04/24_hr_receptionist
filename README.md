@@ -14,7 +14,7 @@ AI-powered receptionist service for small businesses. Answers every call, captur
 | Backend | Next.js API routes (serverless) |
 | Database | Supabase (Postgres + Auth) |
 | Payments | Stripe Checkout + Webhooks + Billing Portal |
-| Voice/AI | Twilio + OpenAI Realtime API (GPT-4o) |
+| Voice/AI | Twilio voice recording + OpenAI transcription/summaries |
 | Email | Resend |
 | CRM | Google Sheets API v4 |
 | Automation | Google Apps Script |
@@ -179,6 +179,7 @@ In Twilio Console → Phone Numbers → Your Number:
 - Voice webhook URL: `https://your-domain.vercel.app/api/twilio/voice`
 - Method: `HTTP POST`
 - Status callback URL: `https://your-domain.vercel.app/api/twilio/status`
+- Callers will hear a greeting and leave a message that is transcribed, summarized, and delivered automatically.
 
 ---
 
