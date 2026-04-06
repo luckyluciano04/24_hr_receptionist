@@ -52,12 +52,19 @@ export async function POST(request: NextRequest) {
       .eq('id', call.profile_id)
       .single();
 
+    // Validate the recording URL is from Twilio to prevent SSRF
+    const parsedUrl = new URL(`${recordingUrl}.mp3`);
+    if (!parsedUrl.hostname.endsWith('.twilio.com')) {
+      logger.warn('twilio.recording.invalid_url', { callSid, hostname: parsedUrl.hostname });
+      return NextResponse.json({ error: 'Invalid recording URL' }, { status: 400 });
+    }
+
     // Download the recording from Twilio (MP3 format)
     const authHeader = Buffer.from(
       `${process.env.TWILIO_ACCOUNT_SID}:${process.env.TWILIO_AUTH_TOKEN}`,
     ).toString('base64');
 
-    const recordingResponse = await fetch(`${recordingUrl}.mp3`, {
+    const recordingResponse = await fetch(parsedUrl.href, {
       headers: { Authorization: `Basic ${authHeader}` },
     });
 
@@ -94,22 +101,6 @@ export async function POST(request: NextRequest) {
       max_tokens: 50,
     });
     const callerName = callerNameResponse.choices[0]?.message?.content?.trim() ?? 'Unknown';
-
-    // Update the call record with transcript and summary
-    await supabase
-      .from('calls')
-      .update({
-        caller_name: callerName,
-        call_transcript: transcript,
-        call_summary: summary,
-        call_duration_seconds: recordingDuration,
-        status: 'completed',
-        delivered_via: [],
-      })
-      .eq('twilio_call_sid', callSid);
-
-    // Increment call count
-    await supabase.rpc('increment_calls', { profile_id: call.profile_id });
 
     const deliveredVia: string[] = [];
 
@@ -165,11 +156,21 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Update delivered_via with actual delivery channels
+    // Persist all call data and delivery status in a single update
     await supabase
       .from('calls')
-      .update({ delivered_via: deliveredVia })
+      .update({
+        caller_name: callerName,
+        call_transcript: transcript,
+        call_summary: summary,
+        call_duration_seconds: recordingDuration,
+        status: 'completed',
+        delivered_via: deliveredVia,
+      })
       .eq('twilio_call_sid', callSid);
+
+    // Increment call count
+    await supabase.rpc('increment_calls', { profile_id: call.profile_id });
 
     return NextResponse.json({ success: true });
   } catch (error) {
