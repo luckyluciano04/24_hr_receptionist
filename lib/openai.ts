@@ -34,6 +34,21 @@ Let them know ${businessName} will get back to them shortly.
 Keep the conversation brief — under 2 minutes if possible.`;
 }
 
+function parseJsonObject(content: string): Record<string, unknown> | null {
+  const trimmed = content.trim();
+  const start = trimmed.indexOf('{');
+  const end = trimmed.lastIndexOf('}');
+  if (start === -1 || end === -1 || end <= start) {
+    return null;
+  }
+
+  try {
+    return JSON.parse(trimmed.slice(start, end + 1)) as Record<string, unknown>;
+  } catch {
+    return null;
+  }
+}
+
 export async function generateCallSummary(transcript: string): Promise<string> {
   const response = await getClient().chat.completions.create({
     model: 'gpt-4o',
@@ -49,4 +64,51 @@ export async function generateCallSummary(transcript: string): Promise<string> {
   });
 
   return response.choices[0]?.message?.content ?? 'No summary available';
+}
+
+export async function transcribeAudio(file: File): Promise<string> {
+  const response = await getClient().audio.transcriptions.create({
+    file,
+    model: 'whisper-1',
+  });
+
+  return response.text.trim();
+}
+
+export async function generateCallInsights(
+  transcript: string,
+): Promise<{ callerName: string; summary: string }> {
+  const response = await getClient().chat.completions.create({
+    model: 'gpt-4o',
+    messages: [
+      {
+        role: 'system',
+        content:
+          'Extract the caller name and write a concise 2-3 sentence summary. Return valid JSON only with keys callerName and summary. Use "Unknown Caller" when the name is not stated.',
+      },
+      { role: 'user', content: transcript },
+    ],
+    max_tokens: 200,
+  });
+
+  const content = response.choices[0]?.message?.content ?? '';
+  const parsed = parseJsonObject(content);
+
+  if (parsed) {
+    const callerName =
+      typeof parsed.callerName === 'string' && parsed.callerName.trim()
+        ? parsed.callerName.trim()
+        : 'Unknown Caller';
+    const summary =
+      typeof parsed.summary === 'string' && parsed.summary.trim()
+        ? parsed.summary.trim()
+        : await generateCallSummary(transcript);
+
+    return { callerName, summary };
+  }
+
+  return {
+    callerName: 'Unknown Caller',
+    summary: await generateCallSummary(transcript),
+  };
 }
