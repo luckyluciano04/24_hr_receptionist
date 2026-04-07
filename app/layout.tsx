@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
+import { Analytics } from "@vercel/analytics/next";
+import { APP_URL } from "@/lib/constants";
 import "./globals.css";
-
-const metadataBase = new URL(process.env.NEXT_PUBLIC_APP_URL ?? "https://24hrreceptionist.com");
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -11,7 +11,7 @@ const geistSans = localFont({
 });
 
 export const metadata: Metadata = {
-  metadataBase,
+  metadataBase: new URL(APP_URL),
   title: "24hr Receptionist — Never Miss Another Call",
   description:
     "AI-powered receptionist that answers every call, captures every lead, and delivers the info straight to you — 24/7, no staff required.",
@@ -35,6 +35,7 @@ export default function RootLayout({
     <html lang="en" className="dark">
       <body className={`${geistSans.variable} antialiased bg-[#0A0A0A] text-white`}>
         {children}
+        <Analytics />
       </body>
     </html>
   );

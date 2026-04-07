@@ -85,7 +85,9 @@ export async function sendConfirmationEmail(
   to: string,
   name: string,
   tier: string,
+  loginUrl?: string,
 ): Promise<void> {
+  const onboardingUrl = loginUrl ?? `${APP_URL}/onboarding`;
   const html = baseLayout(`
     <h2 style="color:#fff;margin-top:0;">You're all set! 🎉</h2>
     <p style="color:#ccc;line-height:1.6;">Hi ${name},</p>
@@ -93,7 +95,7 @@ export async function sendConfirmationEmail(
       Your <strong style="color:#2563EB;">${capitalize(tier)}</strong> plan is now active. 
       Let's get your calls set up!
     </p>
-    <a href="${APP_URL}/onboarding" style="display:inline-block;background:#2563EB;color:#fff;padding:12px 28px;border-radius:6px;text-decoration:none;font-weight:600;margin-top:16px;">
+    <a href="${onboardingUrl}" style="display:inline-block;background:#2563EB;color:#fff;padding:12px 28px;border-radius:6px;text-decoration:none;font-weight:600;margin-top:16px;">
       Start Onboarding
     </a>
     <p style="color:#999;font-size:14px;margin-top:24px;">

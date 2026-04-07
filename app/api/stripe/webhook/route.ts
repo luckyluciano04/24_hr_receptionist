@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { createClient } from '@supabase/supabase-js';
 import { stripe } from '@/lib/stripe';
 import { createAdminClient } from '@/lib/supabase/server';
 import {
@@ -9,6 +10,22 @@ import {
 import { logger } from '@/lib/logger';
 import type Stripe from 'stripe';
 import type { Tier } from '@/lib/constants';
+
+export const maxDuration = 30;
+
+/**
+ * Returns a raw Supabase client with service role privileges that exposes
+ * the auth.admin API (createUser, generateLink, etc.). We use the raw
+ * @supabase/supabase-js client here because @supabase/ssr's createServerClient
+ * wraps it for cookie-based sessions and its auth.admin surface may differ.
+ */
+function getSupabaseAuthAdmin() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    { auth: { autoRefreshToken: false, persistSession: false } },
+  );
+}
 
 export async function POST(request: NextRequest) {
   const body = await request.text();
@@ -32,6 +49,7 @@ export async function POST(request: NextRequest) {
   }
 
   const supabase = createAdminClient();
+  const authAdmin = getSupabaseAuthAdmin();
 
   logger.info('stripe.webhook.received', { eventType: event.type, eventId: event.id });
 
@@ -54,8 +72,34 @@ export async function POST(request: NextRequest) {
 
         if (!email) break;
 
+        // Find or create a Supabase auth user so the profile row can reference auth.users
+        let authUserId: string;
+        const { data: existingProfile } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('email', email)
+          .single();
+
+        if (existingProfile?.id) {
+          authUserId = existingProfile.id;
+        } else {
+          const { data: newUser, error: createError } = await authAdmin.auth.admin.createUser({
+            email,
+            email_confirm: true,
+          });
+          if (createError || !newUser.user) {
+            logger.error('stripe.webhook.auth_user_creation_failed', {
+              email,
+              error: createError?.message,
+            });
+            break;
+          }
+          authUserId = newUser.user.id;
+        }
+
         await supabase.from('profiles').upsert(
           {
+            id: authUserId,
             email,
             business_name: businessName,
             tier,
@@ -66,7 +110,22 @@ export async function POST(request: NextRequest) {
           { onConflict: 'stripe_customer_id' },
         );
 
-        await sendConfirmationEmail(email, businessName || email, tier);
+        // Generate a magic link so the user can sign in and reach onboarding
+        let loginUrl: string | undefined;
+        try {
+          const { data: linkData } = await authAdmin.auth.admin.generateLink({
+            type: 'magiclink',
+            email,
+            options: {
+              redirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/onboarding`,
+            },
+          });
+          loginUrl = linkData?.properties?.action_link ?? undefined;
+        } catch (linkErr) {
+          logger.warn('stripe.webhook.magic_link_failed', { email, error: String(linkErr) });
+        }
+
+        await sendConfirmationEmail(email, businessName || email, tier, loginUrl);
         break;
       }
 

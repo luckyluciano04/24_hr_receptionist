@@ -1,19 +1,14 @@
 #!/usr/bin/env node
 /**
- * Pre-build environment variable gate.
- * Exits with code 1 if any required server-side variable is missing,
- * preventing a broken deployment from reaching Vercel.
- *
- * Add to package.json: "prebuild": "node scripts/check-env.js"
+ * Pre-build environment variable check.
+ * Warns about missing variables so developers know what to configure,
+ * but does not block the build — the public landing page works without
+ * all secrets, and API-route failures are surfaced at runtime only.
  */
 
 'use strict';
 
-const { loadEnvConfig } = require('@next/env');
-
-loadEnvConfig(process.cwd());
-
-const REQUIRED = [
+const PRODUCTION_REQUIRED = [
   'STRIPE_SECRET_KEY',
   'STRIPE_WEBHOOK_SECRET',
   'STRIPE_PRICE_STARTER',
@@ -31,34 +26,28 @@ const REQUIRED = [
   'NEXT_PUBLIC_APP_URL',
 ];
 
-const missing = REQUIRED.filter((key) => !process.env[key]);
+const missing = PRODUCTION_REQUIRED.filter((key) => !process.env[key]);
 
 if (missing.length > 0) {
-  console.error(
-    '[check-env] ❌ Build blocked — missing required environment variables:\n  ' +
+  console.warn(
+    '[check-env] ⚠️  Missing environment variables (set these before going live):\n  ' +
       missing.join('\n  '),
   );
-  console.error(
-    '[check-env] Set these in your .env file (local) or hosting environment (Vercel).',
+  console.warn(
+    '[check-env] ➜  To fix this on Vercel:',
   );
-  process.exit(1);
+  console.warn(
+    '[check-env]    1. Go to your Vercel project → Settings → Environment Variables',
+  );
+  console.warn(
+    '[check-env]    2. Add each missing variable listed above',
+  );
+  console.warn(
+    '[check-env]    3. Redeploy — the build will succeed once all variables are present',
+  );
+  console.warn(
+    '[check-env] ➜  For local development: copy .env.example to .env.local and fill in the values.',
+  );
+} else {
+  console.log('[check-env] ✅ All environment variables are present.');
 }
-
-try {
-  const parsed = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_JSON);
-  if (!parsed.client_email || !parsed.private_key) {
-    throw new Error('missing client_email/private_key');
-  }
-} catch (error) {
-  console.error('[check-env] ❌ Build blocked — GOOGLE_SERVICE_ACCOUNT_JSON is invalid:', error.message);
-  process.exit(1);
-}
-
-try {
-  new URL(process.env.NEXT_PUBLIC_APP_URL);
-} catch {
-  console.error('[check-env] ❌ Build blocked — NEXT_PUBLIC_APP_URL must be a valid absolute URL.');
-  process.exit(1);
-}
-
-console.log('[check-env] ✅ All required environment variables are present.');

@@ -69,7 +69,7 @@ Open `.env.local` and fill in every value (see sections below for how to get eac
    - `Project URL` → `NEXT_PUBLIC_SUPABASE_URL`
    - `anon public` key → `NEXT_PUBLIC_SUPABASE_ANON_KEY`
    - `service_role` key → `SUPABASE_SERVICE_ROLE_KEY`
-3. Go to **SQL Editor** and run the contents of `supabase/migrations/001_initial_schema.sql`
+3. Go to **SQL Editor** and run the contents of `supabase/migrations/001_initial_schema.sql`, then `supabase/migrations/002_fixes.sql`, then `supabase/migrations/003_leads_appointments.sql`
 4. Enable **Email auth** under Authentication → Providers
 
 ### 4. Set up Stripe

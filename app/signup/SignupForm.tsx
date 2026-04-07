@@ -5,7 +5,7 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import { STRIPE_PRICE_IDS, TIER_PRICES, type Tier } from '@/lib/constants';
+import { TIER_PRICES, type Tier } from '@/lib/constants';
 
 export default function SignupForm() {
   const searchParams = useSearchParams();
@@ -17,8 +17,6 @@ export default function SignupForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const priceId = STRIPE_PRICE_IDS[plan] || STRIPE_PRICE_IDS.starter;
-
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setIsLoading(true);
@@ -28,7 +26,7 @@ export default function SignupForm() {
       const res = await fetch('/api/stripe/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ priceId, email, businessName }),
+        body: JSON.stringify({ plan, email, businessName }),
       });
 
       if (!res.ok) {
@@ -102,7 +100,7 @@ export default function SignupForm() {
 
           <p className="mt-6 text-center text-sm text-gray-500">
             Already have an account?{' '}
-            <Link href="/dashboard" className="text-blue-400 hover:underline">
+            <Link href="/login" className="text-blue-400 hover:underline">
               Sign in
             </Link>
           </p>
