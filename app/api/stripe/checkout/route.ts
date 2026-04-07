@@ -2,24 +2,29 @@ import { NextRequest, NextResponse } from 'next/server';
 import { stripe } from '@/lib/stripe';
 import { STRIPE_PRICE_IDS, TRIAL_PERIOD_DAYS, APP_URL, type Tier } from '@/lib/constants';
 import { createAdminClient } from '@/lib/supabase/server';
+import { logger } from '@/lib/logger';
 
 export async function POST(request: NextRequest) {
   try {
     const body = (await request.json()) as {
-      priceId: string;
+      plan: string;
       email: string;
       businessName: string;
     };
-    const { priceId, email, businessName } = body;
+    const { plan, email, businessName } = body;
 
-    if (!priceId || !email) {
+    if (!plan || !email) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
-    // Validate priceId is one of our known price IDs
-    const validPriceIds = Object.values(STRIPE_PRICE_IDS);
-    if (!validPriceIds.includes(priceId)) {
-      return NextResponse.json({ error: 'Invalid price ID' }, { status: 400 });
+    // Validate plan and resolve price ID server-side (keeps STRIPE_PRICE_* server-only)
+    if (!Object.keys(STRIPE_PRICE_IDS).includes(plan)) {
+      return NextResponse.json({ error: 'Invalid plan' }, { status: 400 });
+    }
+    const tier = plan as Tier;
+    const priceId = STRIPE_PRICE_IDS[tier];
+    if (!priceId) {
+      return NextResponse.json({ error: 'Price not configured for this plan' }, { status: 400 });
     }
 
     const supabase = createAdminClient();
@@ -42,11 +47,6 @@ export async function POST(request: NextRequest) {
       customerId = customer.id;
     }
 
-    // Determine tier from priceId
-    const tier = (Object.entries(STRIPE_PRICE_IDS).find(
-      ([, id]) => id === priceId,
-    )?.[0] ?? 'starter') as Tier;
-
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       payment_method_types: ['card'],
@@ -59,14 +59,12 @@ export async function POST(request: NextRequest) {
       success_url: `${APP_URL}/onboarding?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${APP_URL}/pricing`,
       allow_promotion_codes: true,
-      // customer_email must be omitted when customer is provided (Stripe API requirement)
-      customer_email: customerId ? undefined : email,
       metadata: { tier, businessName, email },
     });
 
     return NextResponse.json({ url: session.url });
   } catch (error) {
-    console.error('Stripe checkout error:', error);
+    logger.error('stripe.checkout_error', { error: String(error) });
     return NextResponse.json({ error: 'Failed to create checkout session' }, { status: 500 });
   }
 }

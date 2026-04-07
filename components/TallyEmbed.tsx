@@ -3,12 +3,18 @@
 import { useEffect } from 'react';
 
 interface TallyEmbedProps {
-  formId: string;
+  formId?: string;
   height?: number;
 }
 
-export function TallyEmbed({ formId, height = 600 }: TallyEmbedProps) {
+const defaultFormId = process.env.NEXT_PUBLIC_TALLY_FORM_ID ?? '';
+
+export function TallyEmbed({ formId = defaultFormId, height = 600 }: TallyEmbedProps) {
   useEffect(() => {
+    if (!formId) {
+      console.warn('[TallyEmbed] No formId provided and NEXT_PUBLIC_TALLY_FORM_ID is not set. The form will not load.');
+      return;
+    }
     const script = document.createElement('script');
     script.src = 'https://tally.so/widgets/embed.js';
     script.async = true;
@@ -16,7 +22,7 @@ export function TallyEmbed({ formId, height = 600 }: TallyEmbedProps) {
     return () => {
       document.body.removeChild(script);
     };
-  }, []);
+  }, [formId]);
 
   return (
     <iframe

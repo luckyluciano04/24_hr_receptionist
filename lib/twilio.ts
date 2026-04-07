@@ -50,11 +50,11 @@ export function validateTwilioSignature(
 }
 
 export async function sendSMS(to: string, body: string): Promise<void> {
-  await getTwilioClient().messages.create({
-    to,
-    from: process.env.TWILIO_PHONE_NUMBER!,
-    body,
-  });
+  const from = process.env.TWILIO_PHONE_NUMBER;
+  if (!from) {
+    throw new Error('Missing TWILIO_PHONE_NUMBER environment variable');
+  }
+  await getTwilioClient().messages.create({ to, from, body });
 }
 
 export async function provisionPhoneNumber(areaCode: string = '415'): Promise<string> {

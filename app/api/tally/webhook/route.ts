@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/server';
 import { appendRow } from '@/lib/sheets';
 import { sendWelcomeEmail } from '@/lib/resend';
+import { logger } from '@/lib/logger';
+
+export const maxDuration = 30;
 
 interface TallyField {
   key: string;
@@ -28,6 +31,17 @@ function getField(fields: TallyField[], label: string): string {
 }
 
 export async function POST(request: NextRequest) {
+  // Verify the shared webhook secret to prevent unauthorised submissions.
+  // In Tally, append ?secret=<TALLY_SIGNING_SECRET> to the webhook URL.
+  const secret = process.env.TALLY_SIGNING_SECRET;
+  if (secret) {
+    const provided = request.nextUrl.searchParams.get('secret');
+    if (!provided || provided !== secret) {
+      logger.warn('tally.webhook.invalid_secret', { url: request.url });
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+  }
+
   try {
     const body = (await request.json()) as TallyPayload;
     const fields = body?.data?.fields ?? [];
@@ -77,7 +91,7 @@ export async function POST(request: NextRequest) {
           `Industry: ${industry}. Heard via: ${howHeard}`,
         ]);
       } catch (sheetErr) {
-        console.error('Failed to sync to Google Sheets:', sheetErr);
+        logger.error('tally.webhook.sheets_failed', { email, error: String(sheetErr) });
       }
     }
 
@@ -85,7 +99,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Tally webhook error:', error);
+    logger.error('tally.webhook.error', { error: String(error) });
     return NextResponse.json({ error: 'Failed to process submission' }, { status: 500 });
   }
 }
