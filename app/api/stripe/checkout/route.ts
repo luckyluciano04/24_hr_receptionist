@@ -18,10 +18,13 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate plan and resolve price ID server-side (keeps STRIPE_PRICE_* server-only)
-    const tier = (Object.keys(STRIPE_PRICE_IDS).includes(plan) ? plan : 'starter') as Tier;
+    if (!Object.keys(STRIPE_PRICE_IDS).includes(plan)) {
+      return NextResponse.json({ error: 'Invalid plan' }, { status: 400 });
+    }
+    const tier = plan as Tier;
     const priceId = STRIPE_PRICE_IDS[tier];
     if (!priceId) {
-      return NextResponse.json({ error: 'Invalid plan' }, { status: 400 });
+      return NextResponse.json({ error: 'Price not configured for this plan' }, { status: 400 });
     }
 
     const supabase = createAdminClient();

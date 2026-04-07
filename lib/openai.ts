@@ -67,6 +67,7 @@ export async function generateCallSummary(transcript: string): Promise<string> {
 }
 
 export type Intent = 'book' | 'lead' | 'faq' | 'escalate';
+const VALID_INTENTS: readonly Intent[] = ['book', 'lead', 'faq', 'escalate'] as const;
 
 export interface IntentAnalysis {
   response: string;
@@ -107,7 +108,7 @@ Intent definitions:
     const parsed = JSON.parse(raw) as Partial<IntentAnalysis>;
     return {
       response: parsed.response ?? '',
-      intent: (['book', 'lead', 'faq', 'escalate'].includes(parsed.intent ?? '') ? parsed.intent : 'lead') as Intent,
+      intent: (VALID_INTENTS.includes(parsed.intent as Intent) ? parsed.intent : 'lead') as Intent,
       confidence: typeof parsed.confidence === 'number' ? parsed.confidence : 0.5,
     };
   } catch {
