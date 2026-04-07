@@ -37,7 +37,9 @@ async function verifyTallySignature(body: string, signature: string, secret: str
     ['sign'],
   );
   const sigBuffer = await crypto.subtle.sign('HMAC', key, encoder.encode(body));
-  const expected = Buffer.from(sigBuffer).toString('hex');
+  const expected = Array.from(new Uint8Array(sigBuffer))
+    .map((b) => b.toString(16).padStart(2, '0'))
+    .join('');
   return expected === signature;
 }
 

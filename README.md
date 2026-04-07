@@ -163,7 +163,13 @@ npx ngrok http 3000
 6. Encode the JSON as a single line and paste into `GOOGLE_SERVICE_ACCOUNT_JSON`:
 
 ```bash
-# Convert JSON to a single-line string safe for env vars
+# Using jq (recommended)
+cat service-account.json | jq -c .
+
+# Using Node.js
+node -e "console.log(JSON.stringify(require('./service-account.json')))"
+
+# Using Python 3
 cat service-account.json | python3 -c "import sys,json; print(json.dumps(json.load(sys.stdin)))"
 ```
 

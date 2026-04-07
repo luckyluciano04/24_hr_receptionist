@@ -85,7 +85,7 @@ export async function POST(request: NextRequest) {
 
         await supabase.from('profiles').upsert(
           {
-            id: userId,
+            id: userId, // Required for INSERT: explicitly set the primary key for new profiles
             email,
             business_name: businessName,
             tier,
