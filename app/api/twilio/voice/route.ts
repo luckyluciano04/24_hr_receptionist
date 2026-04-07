@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/server';
 import { validateTwilioSignature } from '@/lib/twilio';
 import { logger } from '@/lib/logger';
-import { completeCall } from '@/lib/call-processing';
 
 export const maxDuration = 60;
 
@@ -78,36 +77,5 @@ export async function POST(request: NextRequest) {
       '<?xml version="1.0" encoding="UTF-8"?><Response><Say>We\'re sorry, an error occurred. Please try again later.</Say></Response>',
       { headers: { 'Content-Type': 'text/xml' } },
     );
-  }
-}
-
-// Called after call ends with transcript/summary
-export async function PUT(request: NextRequest) {
-  try {
-    const body = (await request.json()) as {
-      callSid: string;
-      transcript: string;
-      summary: string;
-      callerName: string;
-      duration: number;
-    };
-
-    const { callSid, transcript, summary, callerName, duration } = body;
-    const completed = await completeCall({
-      callSid,
-      transcript,
-      summary,
-      callerName,
-      duration,
-    });
-
-    if (!completed) {
-      return NextResponse.json({ error: 'Call not found' }, { status: 404 });
-    }
-
-    return NextResponse.json({ success: true });
-  } catch (error) {
-    logger.error('twilio.call.completion_error', { error: String(error) });
-    return NextResponse.json({ error: 'Failed to process call completion' }, { status: 500 });
   }
 }
