@@ -69,8 +69,13 @@ Open `.env.local` and fill in every value (see sections below for how to get eac
    - `Project URL` → `NEXT_PUBLIC_SUPABASE_URL`
    - `anon public` key → `NEXT_PUBLIC_SUPABASE_ANON_KEY`
    - `service_role` key → `SUPABASE_SERVICE_ROLE_KEY`
-3. Go to **SQL Editor** and run the contents of `supabase/migrations/001_initial_schema.sql`
-4. Enable **Email auth** under Authentication → Providers
+3. Go to **SQL Editor** and run the migrations in order:
+   - `supabase/migrations/001_initial_schema.sql`
+   - `supabase/migrations/002_fixes.sql`
+4. Enable **Email auth** under **Authentication → Providers**
+5. Under **Authentication → URL Configuration**, set:
+   - Site URL: `http://localhost:3000` (development) or your production URL
+   - Additional Redirect URLs: `http://localhost:3000/api/auth/callback`
 
 ### 4. Set up Stripe
 
@@ -131,9 +136,10 @@ npx ngrok http 3000
 1. Create an intake form at [tally.so](https://tally.so)
 2. Include fields: Business Name, Contact Name, Phone, Email, Call Volume, Industry
 3. Copy the form ID to `NEXT_PUBLIC_TALLY_FORM_ID`
-4. In Tally: Form Settings → Integrations → Webhooks
+4. In Tally: **Form Settings → Integrations → Webhooks**
 5. Add webhook URL: `https://your-domain.vercel.app/api/tally/webhook`
 6. Set method: POST
+7. Copy the **Signing Secret** → save as `TALLY_SIGNING_SECRET` in your env file
 
 ---
 
@@ -142,21 +148,29 @@ npx ngrok http 3000
 ### Create a Service Account
 
 1. Go to [Google Cloud Console](https://console.cloud.google.com)
-2. Create a new project (or use existing)
-3. Enable the **Google Sheets API**
-4. Go to **IAM & Admin → Service Accounts → Create Service Account**
-5. Download the JSON key file
-6. Encode the JSON as a single line and paste into `GOOGLE_SERVICE_ACCOUNT_JSON`
+2. Create a new project named **24hr-receptionist** (or use existing)
+3. Enable the **Google Sheets API**:
+   - Navigate to **APIs & Services → Library**
+   - Search for "Google Sheets API" and click **Enable**
+4. Create a Service Account:
+   - Go to **IAM & Admin → Service Accounts → + Create Service Account**
+   - Name: `receptionist-sheets`
+   - Description: "Writes call and lead data to customer Google Sheets"
+   - Click **Create and Continue** → **Done**
+5. Create a JSON key:
+   - Click the new service account → **Keys** tab → **Add Key → Create new key → JSON**
+   - Download the JSON file
+6. Encode the JSON as a single line and paste into `GOOGLE_SERVICE_ACCOUNT_JSON`:
 
 ```bash
-# Convert JSON to single-line string
-cat service-account.json | tr -d '\n' | sed 's/"/\\"/g'
+# Convert JSON to a single-line string safe for env vars
+cat service-account.json | python3 -c "import sys,json; print(json.dumps(json.load(sys.stdin)))"
 ```
 
 ### Share your sheet with the service account
 
 1. Open your Google Sheet
-2. Share it with the service account email (found in the JSON file)
+2. Share it with the service account email (found in the JSON file as `client_email`)
 3. Give **Editor** permissions
 4. Copy the Sheet ID from the URL: `https://docs.google.com/spreadsheets/d/[SHEET_ID]/edit`
 5. Save the Sheet ID in your user's profile record (`google_sheet_id` column in Supabase)
@@ -216,6 +230,7 @@ vercel env add NEXT_PUBLIC_SUPABASE_URL
 vercel env add NEXT_PUBLIC_SUPABASE_ANON_KEY
 vercel env add SUPABASE_SERVICE_ROLE_KEY
 vercel env add STRIPE_SECRET_KEY
+vercel env add NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
 vercel env add STRIPE_WEBHOOK_SECRET
 vercel env add STRIPE_PRICE_STARTER
 vercel env add STRIPE_PRICE_PROFESSIONAL
@@ -226,8 +241,27 @@ vercel env add TWILIO_PHONE_NUMBER
 vercel env add OPENAI_API_KEY
 vercel env add RESEND_API_KEY
 vercel env add GOOGLE_SERVICE_ACCOUNT_JSON
+vercel env add NEXT_PUBLIC_TALLY_FORM_ID
+vercel env add TALLY_SIGNING_SECRET
 vercel env add NEXT_PUBLIC_APP_URL
 ```
+
+### Vercel project settings to verify
+
+1. **Framework preset**: Next.js (auto-detected)
+2. **Root directory**: `.` (repository root)
+3. **Node.js version**: 20.x
+4. **Build command**: `npm run build` (from `vercel.json`)
+5. **Install command**: `npm install` (from `vercel.json`)
+6. **Function region**: US East (`iad1`) recommended for lowest latency with Twilio and Stripe
+7. **Serverless function timeout**: Pro plan required for the 60-second voice/recording routes
+
+### Custom domain
+
+1. In Vercel Dashboard → your project → **Settings → Domains**
+2. Add `24hrreceptionist.com` and `www.24hrreceptionist.com`
+3. Update your DNS records per the Vercel instructions
+4. Update `NEXT_PUBLIC_APP_URL` to your production domain
 
 ### Redeploy with env vars
 
@@ -239,21 +273,54 @@ vercel --prod
 
 ## Going Live Checklist
 
-- [ ] All environment variables set in Vercel
-- [ ] Supabase migration executed
-- [ ] Stripe products + prices created
-- [ ] Stripe webhook configured with production URL
-- [ ] Twilio voice webhook configured with production URL
-- [ ] Google Service Account created and sheet shared
-- [ ] Apps Script deployed with setupTrigger() run
-- [ ] Resend domain verified (or using sandbox)
-- [ ] Test Stripe checkout with card `4242 4242 4242 4242`
-- [ ] Test call forwarding to your Twilio number
-- [ ] Verify email notifications are received
-- [ ] Verify SMS notifications are received (Professional+ plans)
+### Infrastructure
+- [ ] Supabase project created, migrations 001 + 002 executed
+- [ ] Supabase Auth → Email provider enabled, "Confirm email" settings configured
+- [ ] Supabase Auth → URL Configuration: Site URL set to `https://24hrreceptionist.com`, Redirect URLs include `https://24hrreceptionist.com/api/auth/callback`
+
+### Stripe
+- [ ] Stripe products + prices created (Starter $97, Professional $197, Enterprise $397)
+- [ ] Stripe price IDs saved to Vercel env vars
+- [ ] Stripe webhook configured with production URL (`/api/stripe/webhook`)
+- [ ] Stripe webhook events: `checkout.session.completed`, `customer.subscription.updated`, `customer.subscription.deleted`, `invoice.payment_failed`
+- [ ] Stripe Billing Portal enabled in Dashboard (for `/api/stripe/portal`)
+
+### Twilio
+- [ ] Twilio phone number purchased
+- [ ] Twilio voice webhook URL set to `https://24hrreceptionist.com/api/twilio/voice` (POST)
+- [ ] Twilio status callback URL set to `https://24hrreceptionist.com/api/twilio/status` (POST)
+
+### Google Cloud
+- [ ] Google Cloud project created
+- [ ] Google Sheets API enabled
+- [ ] Service account `receptionist-sheets` created with JSON key downloaded
+- [ ] `GOOGLE_SERVICE_ACCOUNT_JSON` set in Vercel env vars
+- [ ] Lead-tracking Google Sheet created, shared with service account (Editor)
+
+### Resend
+- [ ] Resend domain `24hrreceptionist.com` verified (DNS records added)
+- [ ] From address `noreply@24hrreceptionist.com` configured and sending
+
+### Tally
+- [ ] Tally form created with fields: Business Name, Contact Name, Phone, Email, Call Volume, Industry
+- [ ] Tally webhook URL set to `https://24hrreceptionist.com/api/tally/webhook`
+- [ ] `TALLY_SIGNING_SECRET` copied from Tally → saved to Vercel env vars
+
+### Vercel
+- [ ] All environment variables set in Vercel (see list above)
+- [ ] Custom domain `24hrreceptionist.com` configured and DNS propagated
+- [ ] Vercel Pro plan active (required for 60-second function timeout on voice routes)
+- [ ] Production deployment successful (`vercel --prod`)
+
+### End-to-end tests
+- [ ] Test Stripe checkout with card `4242 4242 4242 4242` — confirm email received with magic link
+- [ ] Click magic link → lands on `/onboarding` while authenticated
+- [ ] Provision Twilio number in onboarding
+- [ ] Make a test call to the provisioned number — verify recording, transcription, email notification
+- [ ] Verify SMS notification (Professional+ plan)
 - [ ] Check dashboard loads and shows call log
-- [ ] Confirm Stripe billing portal works
-- [ ] Run Lighthouse audit (target: Performance >90, Accessibility >95)
+- [ ] Confirm Stripe Billing Portal opens from Settings
+- [ ] Run Lighthouse audit (target: Performance > 90, Accessibility > 95)
 
 ---
 
