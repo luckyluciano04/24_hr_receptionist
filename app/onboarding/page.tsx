@@ -78,14 +78,15 @@ export default function OnboardingPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ areaCode }),
       });
-      if (!res.ok) throw new Error('Failed to provision number');
+      if (!res.ok) {
+        const data = (await res.json()) as { error?: string };
+        throw new Error(data.error ?? 'Failed to provision number');
+      }
       const data = (await res.json()) as { phoneNumber: string };
       setTwilioNumber(data.phoneNumber);
       setStep(3);
-    } catch {
-      // If provisioning fails, still allow them to proceed
-      setTwilioNumber('+1 (415) 555-0100');
-      setStep(3);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not provision a phone number. Please check your area code and try again, or contact support@24hrreceptionist.com.');
     } finally {
       setIsLoading(false);
     }
