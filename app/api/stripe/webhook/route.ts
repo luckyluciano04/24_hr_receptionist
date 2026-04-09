@@ -7,6 +7,7 @@ import {
   sendCancellationEmail,
 } from '@/lib/resend';
 import { logger } from '@/lib/logger';
+import { APP_URL } from '@/lib/constants';
 import type Stripe from 'stripe';
 import type { Tier } from '@/lib/constants';
 
@@ -54,8 +55,37 @@ export async function POST(request: NextRequest) {
 
         if (!email) break;
 
+        // Ensure a Supabase auth user exists so the customer can log in
+        let userId: string;
+        try {
+          const { data: existingUser } = await supabase.auth.admin.getUserByEmail(email);
+          if (existingUser.user) {
+            userId = existingUser.user.id;
+          } else {
+            const { data: newUser, error: createError } =
+              await supabase.auth.admin.createUser({
+                email,
+                email_confirm: true,
+                user_metadata: { business_name: businessName },
+              });
+            if (createError || !newUser.user) {
+              throw new Error(
+                `Failed to create auth user: ${createError?.message ?? 'unknown'}`,
+              );
+            }
+            userId = newUser.user.id;
+          }
+        } catch (authErr) {
+          logger.error('stripe.checkout.auth_user_error', {
+            email,
+            error: String(authErr),
+          });
+          break;
+        }
+
         await supabase.from('profiles').upsert(
           {
+            id: userId, // Required for INSERT: explicitly set the primary key for new profiles
             email,
             business_name: businessName,
             tier,
@@ -66,7 +96,23 @@ export async function POST(request: NextRequest) {
           { onConflict: 'stripe_customer_id' },
         );
 
-        await sendConfirmationEmail(email, businessName || email, tier);
+        // Generate a one-time magic link so the user can access onboarding immediately
+        let magicLink: string | undefined;
+        try {
+          const { data: linkData } = await supabase.auth.admin.generateLink({
+            type: 'magiclink',
+            email,
+            options: { redirectTo: `${APP_URL}/onboarding` },
+          });
+          magicLink = linkData?.properties?.action_link ?? undefined;
+        } catch (linkErr) {
+          logger.warn('stripe.checkout.magic_link_error', {
+            email,
+            error: String(linkErr),
+          });
+        }
+
+        await sendConfirmationEmail(email, businessName || email, tier, magicLink);
         break;
       }
 

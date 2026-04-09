@@ -27,9 +27,36 @@ function getField(fields: TallyField[], label: string): string {
   return String(val ?? '');
 }
 
+async function verifyTallySignature(body: string, signature: string, secret: string): Promise<boolean> {
+  const encoder = new TextEncoder();
+  const key = await crypto.subtle.importKey(
+    'raw',
+    encoder.encode(secret),
+    { name: 'HMAC', hash: 'SHA-256' },
+    false,
+    ['sign'],
+  );
+  const sigBuffer = await crypto.subtle.sign('HMAC', key, encoder.encode(body));
+  const expected = Array.from(new Uint8Array(sigBuffer))
+    .map((b) => b.toString(16).padStart(2, '0'))
+    .join('');
+  return expected === signature;
+}
+
 export async function POST(request: NextRequest) {
+  const rawBody = await request.text();
+
+  const signingSecret = process.env.TALLY_SIGNING_SECRET;
+  if (signingSecret) {
+    const signature = request.headers.get('tally-signature') ?? '';
+    const valid = await verifyTallySignature(rawBody, signature, signingSecret);
+    if (!valid) {
+      return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
+    }
+  }
+
   try {
-    const body = (await request.json()) as TallyPayload;
+    const body = JSON.parse(rawBody) as TallyPayload;
     const fields = body?.data?.fields ?? [];
 
     const businessName = getField(fields, 'business name');

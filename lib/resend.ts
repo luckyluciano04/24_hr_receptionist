@@ -85,19 +85,22 @@ export async function sendConfirmationEmail(
   to: string,
   name: string,
   tier: string,
+  magicLink?: string,
 ): Promise<void> {
+  const ctaLink = magicLink ?? `${APP_URL}/login`;
   const html = baseLayout(`
     <h2 style="color:#fff;margin-top:0;">You're all set! 🎉</h2>
     <p style="color:#ccc;line-height:1.6;">Hi ${name},</p>
     <p style="color:#ccc;line-height:1.6;">
-      Your <strong style="color:#2563EB;">${capitalize(tier)}</strong> plan is now active. 
-      Let's get your calls set up!
+      Your <strong style="color:#2563EB;">${capitalize(tier)}</strong> plan is now active.
+      Click the button below to complete your setup — the link expires in 24 hours.
     </p>
-    <a href="${APP_URL}/onboarding" style="display:inline-block;background:#2563EB;color:#fff;padding:12px 28px;border-radius:6px;text-decoration:none;font-weight:600;margin-top:16px;">
-      Start Onboarding
+    <a href="${ctaLink}" style="display:inline-block;background:#2563EB;color:#fff;padding:12px 28px;border-radius:6px;text-decoration:none;font-weight:600;margin-top:16px;">
+      Start Onboarding →
     </a>
     <p style="color:#999;font-size:14px;margin-top:24px;">
-      Setup takes less than 5 minutes. We'll walk you through every step.
+      Setup takes less than 5 minutes. You can always sign in again at
+      <a href="${APP_URL}/login" style="color:#2563EB;">${APP_URL}/login</a>.
     </p>
   `);
 

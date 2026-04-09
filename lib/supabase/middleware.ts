@@ -34,7 +34,7 @@ export async function updateSession(request: NextRequest) {
 
   if (isProtected && !user) {
     const url = request.nextUrl.clone();
-    url.pathname = '/signup';
+    url.pathname = '/login';
     return NextResponse.redirect(url);
   }
 
