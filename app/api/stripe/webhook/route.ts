@@ -58,7 +58,15 @@ export async function POST(request: NextRequest) {
         // Ensure a Supabase auth user exists so the customer can log in
         let userId: string;
         try {
-        
+          const normalizedEmail = email.trim().toLowerCase();
+          const { data: usersPage, error: listUsersError } = await supabase.auth.admin.listUsers();
+          if (listUsersError) {
+            throw new Error(`Failed to list auth users: ${listUsersError.message}`);
+          }
+          const existingUser = usersPage.users.find(
+            (user) => user.email?.trim().toLowerCase() === normalizedEmail,
+          );
+
           if (existingUser) {
             userId = existingUser.id;
           } else {
