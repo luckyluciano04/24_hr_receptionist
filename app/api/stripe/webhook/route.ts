@@ -59,8 +59,8 @@ export async function POST(request: NextRequest) {
         let userId: string;
         try {
         
-          if (existingUser.user) {
-            userId = existingUser.user.id;
+          if (existingUser) {
+            userId = existingUser.id;
           } else {
             const { data: newUser, error: createError } =
               await supabase.auth.admin.createUser({
