@@ -58,9 +58,15 @@ export async function POST(request: NextRequest) {
         // Ensure a Supabase auth user exists so the customer can log in
         let userId: string;
         try {
-          const { data: existingUser } = await supabase.auth.admin.getUserByEmail(email);
-          if (existingUser.user) {
-            userId = existingUser.user.id;
+          // Check if a profile already exists for this email (from a prior purchase)
+          const { data: existingProfile } = await supabase
+            .from('profiles')
+            .select('id')
+            .eq('email', email)
+            .single();
+
+          if (existingProfile?.id) {
+            userId = existingProfile.id;
           } else {
             const { data: newUser, error: createError } =
               await supabase.auth.admin.createUser({
