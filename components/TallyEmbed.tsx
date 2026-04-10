@@ -12,7 +12,7 @@ const defaultFormId = process.env.NEXT_PUBLIC_TALLY_FORM_ID ?? '';
 export function TallyEmbed({ formId = defaultFormId, height = 600 }: TallyEmbedProps) {
   useEffect(() => {
     if (!formId) {
-      console.warn('[TallyEmbed] No formId provided and NEXT_PUBLIC_TALLY_FORM_ID is not set. The form will not load.');
+      console.warn('[TallyEmbed] Missing form ID: provide a formId prop or set NEXT_PUBLIC_TALLY_FORM_ID environment variable.');
       return;
     }
     const script = document.createElement('script');

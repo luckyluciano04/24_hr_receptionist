@@ -23,11 +23,16 @@ export async function GET() {
 
   for (const key of REQUIRED_VARS) {
     if (key === 'GOOGLE_SERVICE_ACCOUNT_JSON') {
-      try {
-        const parsed = JSON.parse(process.env[key] ?? '') as Record<string, unknown>;
-        env[key] = !!(parsed.client_email && parsed.private_key);
-      } catch {
+      const raw = process.env[key];
+      if (!raw) {
         env[key] = false;
+      } else {
+        try {
+          const parsed = JSON.parse(raw) as Record<string, unknown>;
+          env[key] = !!(parsed.client_email && parsed.private_key);
+        } catch {
+          env[key] = false;
+        }
       }
     } else {
       env[key] = !!process.env[key];

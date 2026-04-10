@@ -17,7 +17,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate plan name and resolve price ID server-side (keeps STRIPE_PRICE_* server-only)
-    const tier = (Object.keys(STRIPE_PRICE_IDS).includes(plan) ? plan : 'starter') as Tier;
+    const validTiers = Object.keys(STRIPE_PRICE_IDS) as Tier[];
+    const tier: Tier = validTiers.includes(plan as Tier) ? (plan as Tier) : 'starter';
     const priceId = STRIPE_PRICE_IDS[tier];
     if (!priceId) {
       return NextResponse.json({ error: 'Invalid plan' }, { status: 400 });
