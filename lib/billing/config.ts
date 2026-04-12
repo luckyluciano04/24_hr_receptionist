@@ -24,15 +24,8 @@ export function hasAnnualBillingConfigured(): boolean {
 }
 
 function getPriceIdKey(plan: Plan, interval: BillingInterval): keyof ReturnType<typeof getBillingEnv> {
-  if (interval === 'monthly') {
-    if (plan === 'starter') return 'STRIPE_PRICE_STARTER';
-    if (plan === 'professional') return 'STRIPE_PRICE_PROFESSIONAL';
-    return 'STRIPE_PRICE_ENTERPRISE';
-  }
-
-  if (plan === 'starter') return 'STRIPE_PRICE_STARTER_ANNUAL';
-  if (plan === 'professional') return 'STRIPE_PRICE_PROFESSIONAL_ANNUAL';
-  return 'STRIPE_PRICE_ENTERPRISE_ANNUAL';
+  const suffix = interval === 'annual' ? '_ANNUAL' : '';
+  return `STRIPE_PRICE_${plan.toUpperCase()}${suffix}` as keyof ReturnType<typeof getBillingEnv>;
 }
 
 export function resolveStripePriceId(plan: Plan, interval: BillingInterval = 'monthly'): string {

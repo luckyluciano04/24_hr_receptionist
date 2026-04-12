@@ -25,6 +25,10 @@ interface BillingSyncPayload {
   cancellationReason: string | null;
 }
 
+type InvoiceWithLegacySubscriptionField = Stripe.Invoice & {
+  subscription?: string | Stripe.Subscription | null;
+};
+
 function toIsoTimestamp(unixSeconds: number | null | undefined): string | null {
   if (!unixSeconds) {
     return null;
@@ -37,6 +41,23 @@ function getSubscriptionCurrentPeriodEnd(subscription: Stripe.Subscription): num
     subscription as Stripe.Subscription & { current_period_end?: number | null }
   ).current_period_end;
   return subscriptionLevelPeriodEnd ?? subscription.items.data[0]?.current_period_end ?? null;
+}
+
+function extractSubscriptionIdFromInvoice(invoice: Stripe.Invoice): string | null {
+  const invoiceWithSubscription = invoice as InvoiceWithLegacySubscriptionField;
+  const directSubscriptionRef = invoiceWithSubscription.subscription;
+  const parentSubscriptionRef = invoice.parent?.subscription_details?.subscription;
+
+  if (typeof directSubscriptionRef === 'string') {
+    return directSubscriptionRef;
+  }
+  if (directSubscriptionRef?.id) {
+    return directSubscriptionRef.id;
+  }
+  if (typeof parentSubscriptionRef === 'string') {
+    return parentSubscriptionRef;
+  }
+  return parentSubscriptionRef?.id ?? null;
 }
 
 async function resolvePlanAndIntervalFromSubscription(
@@ -237,16 +258,7 @@ export async function POST(request: NextRequest) {
 
       case 'invoice.paid': {
         const invoice = event.data.object as Stripe.Invoice;
-        const invoiceWithSubscription = invoice as Stripe.Invoice & {
-          subscription?: string | Stripe.Subscription | null;
-        };
-        const directSubscriptionRef = invoiceWithSubscription.subscription;
-        const subscriptionRef = invoice.parent?.subscription_details?.subscription;
-        const subscriptionId =
-          typeof directSubscriptionRef === 'string'
-            ? directSubscriptionRef
-            : directSubscriptionRef?.id ??
-              (typeof subscriptionRef === 'string' ? subscriptionRef : subscriptionRef?.id);
+        const subscriptionId = extractSubscriptionIdFromInvoice(invoice);
         if (!subscriptionId) {
           break;
         }

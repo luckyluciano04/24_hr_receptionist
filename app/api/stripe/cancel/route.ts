@@ -4,7 +4,14 @@ import { createClient } from '@/lib/supabase/server';
 
 export async function POST(request: NextRequest) {
   try {
-    const body = (await request.json().catch(() => ({}))) as { reason?: string };
+    let body: { reason?: string } = {};
+    if (request.headers.get('content-length') !== '0') {
+      try {
+        body = (await request.json()) as { reason?: string };
+      } catch {
+        return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
+      }
+    }
     const cancellationReason = body.reason?.trim() || null;
 
     const supabase = await createClient();
