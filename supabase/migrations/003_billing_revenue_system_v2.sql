@@ -17,4 +17,3 @@ BEGIN
       CHECK (billing_interval IN ('monthly', 'annual'));
   END IF;
 END $$;
-

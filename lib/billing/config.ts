@@ -67,4 +67,3 @@ export function resolvePlanFromPriceId(priceId: string): { plan: Plan; interval:
 
   throw new Error(`[billing.config] Unknown Stripe price ID: ${priceId}`);
 }
-

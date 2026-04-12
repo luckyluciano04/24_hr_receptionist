@@ -33,7 +33,10 @@ function toIsoTimestamp(unixSeconds: number | null | undefined): string | null {
 }
 
 function getSubscriptionCurrentPeriodEnd(subscription: Stripe.Subscription): number | null {
-  return subscription.items.data[0]?.current_period_end ?? null;
+  const subscriptionLevelPeriodEnd = (
+    subscription as Stripe.Subscription & { current_period_end?: number | null }
+  ).current_period_end;
+  return subscriptionLevelPeriodEnd ?? subscription.items.data[0]?.current_period_end ?? null;
 }
 
 async function resolvePlanAndIntervalFromSubscription(
@@ -234,9 +237,16 @@ export async function POST(request: NextRequest) {
 
       case 'invoice.paid': {
         const invoice = event.data.object as Stripe.Invoice;
+        const invoiceWithSubscription = invoice as Stripe.Invoice & {
+          subscription?: string | Stripe.Subscription | null;
+        };
+        const directSubscriptionRef = invoiceWithSubscription.subscription;
         const subscriptionRef = invoice.parent?.subscription_details?.subscription;
         const subscriptionId =
-          typeof subscriptionRef === 'string' ? subscriptionRef : subscriptionRef?.id;
+          typeof directSubscriptionRef === 'string'
+            ? directSubscriptionRef
+            : directSubscriptionRef?.id ??
+              (typeof subscriptionRef === 'string' ? subscriptionRef : subscriptionRef?.id);
         if (!subscriptionId) {
           break;
         }
