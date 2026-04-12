@@ -32,6 +32,10 @@ function toIsoTimestamp(unixSeconds: number | null | undefined): string | null {
   return new Date(unixSeconds * 1000).toISOString();
 }
 
+function getSubscriptionCurrentPeriodEnd(subscription: Stripe.Subscription): number | null {
+  return subscription.items.data[0]?.current_period_end ?? null;
+}
+
 async function resolvePlanAndIntervalFromSubscription(
   subscription: Stripe.Subscription,
 ): Promise<{ plan: Plan; interval: BillingInterval }> {
@@ -90,7 +94,7 @@ async function syncFromSubscription(
     plan,
     interval,
     status: subscription.status,
-    currentPeriodEnd: toIsoTimestamp(subscription.current_period_end),
+    currentPeriodEnd: toIsoTimestamp(getSubscriptionCurrentPeriodEnd(subscription)),
     cancelAtPeriodEnd: subscription.cancel_at_period_end,
     canceledAt: toIsoTimestamp(subscription.canceled_at),
     cancellationReason:
@@ -177,7 +181,7 @@ export async function POST(request: NextRequest) {
             stripe_customer_id: customerId,
             stripe_subscription_id: subscriptionId,
             subscription_status: subscription.status,
-            current_period_end: toIsoTimestamp(subscription.current_period_end),
+            current_period_end: toIsoTimestamp(getSubscriptionCurrentPeriodEnd(subscription)),
             cancel_at_period_end: subscription.cancel_at_period_end,
             canceled_at: toIsoTimestamp(subscription.canceled_at),
             cancellation_reason:
@@ -230,8 +234,9 @@ export async function POST(request: NextRequest) {
 
       case 'invoice.paid': {
         const invoice = event.data.object as Stripe.Invoice;
+        const subscriptionRef = invoice.parent?.subscription_details?.subscription;
         const subscriptionId =
-          typeof invoice.subscription === 'string' ? invoice.subscription : invoice.subscription?.id;
+          typeof subscriptionRef === 'string' ? subscriptionRef : subscriptionRef?.id;
         if (!subscriptionId) {
           break;
         }
@@ -273,4 +278,3 @@ export async function POST(request: NextRequest) {
 
   return NextResponse.json({ received: true });
 }
-

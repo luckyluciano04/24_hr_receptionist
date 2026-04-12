@@ -55,17 +55,30 @@ export interface BillingEnv {
 }
 
 export function getBillingEnv(): BillingEnv {
+  const requiredEnvValues = REQUIRED_BILLING_ENV.reduce<Record<string, string>>((acc, key) => {
+    acc[key] = requireEnvValue(key);
+    return acc;
+  }, {});
+
+  const optionalAnnualValues = OPTIONAL_ANNUAL_ENV.reduce<Record<string, string | undefined>>(
+    (acc, key) => {
+      acc[key] = process.env[key]?.trim();
+      return acc;
+    },
+    {},
+  );
+
   const env = {
-    NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: requireEnvValue('NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY'),
-    STRIPE_SECRET_KEY: requireEnvValue('STRIPE_SECRET_KEY'),
-    STRIPE_WEBHOOK_SECRET: requireEnvValue('STRIPE_WEBHOOK_SECRET'),
-    NEXT_PUBLIC_SITE_URL: requireEnvValue('NEXT_PUBLIC_SITE_URL'),
-    STRIPE_PRICE_STARTER: requireEnvValue('STRIPE_PRICE_STARTER'),
-    STRIPE_PRICE_PROFESSIONAL: requireEnvValue('STRIPE_PRICE_PROFESSIONAL'),
-    STRIPE_PRICE_ENTERPRISE: requireEnvValue('STRIPE_PRICE_ENTERPRISE'),
-    STRIPE_PRICE_STARTER_ANNUAL: process.env.STRIPE_PRICE_STARTER_ANNUAL?.trim(),
-    STRIPE_PRICE_PROFESSIONAL_ANNUAL: process.env.STRIPE_PRICE_PROFESSIONAL_ANNUAL?.trim(),
-    STRIPE_PRICE_ENTERPRISE_ANNUAL: process.env.STRIPE_PRICE_ENTERPRISE_ANNUAL?.trim(),
+    NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: requiredEnvValues.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,
+    STRIPE_SECRET_KEY: requiredEnvValues.STRIPE_SECRET_KEY,
+    STRIPE_WEBHOOK_SECRET: requiredEnvValues.STRIPE_WEBHOOK_SECRET,
+    NEXT_PUBLIC_SITE_URL: requiredEnvValues.NEXT_PUBLIC_SITE_URL,
+    STRIPE_PRICE_STARTER: requiredEnvValues.STRIPE_PRICE_STARTER,
+    STRIPE_PRICE_PROFESSIONAL: requiredEnvValues.STRIPE_PRICE_PROFESSIONAL,
+    STRIPE_PRICE_ENTERPRISE: requiredEnvValues.STRIPE_PRICE_ENTERPRISE,
+    STRIPE_PRICE_STARTER_ANNUAL: optionalAnnualValues.STRIPE_PRICE_STARTER_ANNUAL,
+    STRIPE_PRICE_PROFESSIONAL_ANNUAL: optionalAnnualValues.STRIPE_PRICE_PROFESSIONAL_ANNUAL,
+    STRIPE_PRICE_ENTERPRISE_ANNUAL: optionalAnnualValues.STRIPE_PRICE_ENTERPRISE_ANNUAL,
   };
 
   validatePrefix('NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY', env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY, 'pk_');
@@ -104,4 +117,3 @@ export function getBillingEnv(): BillingEnv {
 
   return env;
 }
-
