@@ -5,19 +5,19 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import { STRIPE_PRICE_IDS, TIER_PRICES, type Tier } from '@/lib/constants';
+import { isPlan, type Plan } from '@/lib/billing/config';
+import { TIER_PRICES } from '@/lib/constants';
 
 export default function SignupForm() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const plan = (searchParams.get('plan') ?? 'starter') as Tier;
+  const requestedPlan = (searchParams.get('plan') ?? 'starter').toLowerCase();
+  const plan: Plan = isPlan(requestedPlan) ? requestedPlan : 'starter';
 
   const [email, setEmail] = useState('');
   const [businessName, setBusinessName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
-
-  const priceId = STRIPE_PRICE_IDS[plan] || STRIPE_PRICE_IDS.starter;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -28,7 +28,7 @@ export default function SignupForm() {
       const res = await fetch('/api/stripe/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ priceId, email, businessName }),
+        body: JSON.stringify({ plan, interval: 'monthly', email, businessName }),
       });
 
       if (!res.ok) {

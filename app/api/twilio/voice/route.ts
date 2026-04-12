@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
       .single();
 
     const businessName = profile?.business_name ?? 'this business';
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? '';
+    const appUrl = process.env.NEXT_PUBLIC_SITE_URL ?? '';
 
     const twiml = `<?xml version="1.0" encoding="UTF-8"?>
 <Response>

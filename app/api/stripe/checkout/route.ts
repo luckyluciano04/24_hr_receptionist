@@ -1,26 +1,48 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { stripe } from '@/lib/stripe';
-import { STRIPE_PRICE_IDS, TRIAL_PERIOD_DAYS, APP_URL, type Tier } from '@/lib/constants';
+import { TRIAL_PERIOD_DAYS } from '@/lib/constants';
 import { createAdminClient } from '@/lib/supabase/server';
+import {
+  hasAnnualBillingConfigured,
+  isBillingInterval,
+  isPlan,
+  resolveStripePriceId,
+  type BillingInterval,
+  type Plan,
+} from '@/lib/billing/config';
+import { getBillingEnv } from '@/lib/billing/env';
 
 export async function POST(request: NextRequest) {
   try {
+    const { NEXT_PUBLIC_SITE_URL } = getBillingEnv();
     const body = (await request.json()) as {
-      priceId: string;
+      plan: string;
+      interval?: string;
       email: string;
       businessName: string;
     };
-    const { priceId, email, businessName } = body;
+    const { plan, interval, email, businessName } = body;
 
-    if (!priceId || !email) {
+    if (!plan || !email) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
-    // Validate priceId is one of our known price IDs
-    const validPriceIds = Object.values(STRIPE_PRICE_IDS);
-    if (!validPriceIds.includes(priceId)) {
-      return NextResponse.json({ error: 'Invalid price ID' }, { status: 400 });
+    if (!isPlan(plan)) {
+      return NextResponse.json({ error: 'Invalid plan value' }, { status: 400 });
     }
+
+    const normalizedInterval = interval?.toLowerCase() ?? 'monthly';
+    if (!isBillingInterval(normalizedInterval)) {
+      return NextResponse.json({ error: 'Invalid billing interval value' }, { status: 400 });
+    }
+
+    if (normalizedInterval === 'annual' && !hasAnnualBillingConfigured()) {
+      return NextResponse.json({ error: 'Annual billing is not enabled' }, { status: 400 });
+    }
+
+    const selectedPlan = plan as Plan;
+    const selectedInterval = normalizedInterval as BillingInterval;
+    const priceId = resolveStripePriceId(selectedPlan, selectedInterval);
 
     const supabase = createAdminClient();
 
@@ -42,11 +64,6 @@ export async function POST(request: NextRequest) {
       customerId = customer.id;
     }
 
-    // Determine tier from priceId
-    const tier = (Object.entries(STRIPE_PRICE_IDS).find(
-      ([, id]) => id === priceId,
-    )?.[0] ?? 'starter') as Tier;
-
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       payment_method_types: ['card'],
@@ -54,14 +71,27 @@ export async function POST(request: NextRequest) {
       mode: 'subscription',
       subscription_data: {
         trial_period_days: TRIAL_PERIOD_DAYS,
-        metadata: { tier, businessName, email },
+        metadata: {
+          plan: selectedPlan,
+          interval: selectedInterval,
+          source: 'signup',
+          businessName,
+          email,
+        },
       },
-      success_url: `${APP_URL}/onboarding?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${APP_URL}/pricing`,
+      success_url: `${NEXT_PUBLIC_SITE_URL}/onboarding?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${NEXT_PUBLIC_SITE_URL}/pricing`,
       allow_promotion_codes: true,
       // customer_email must be omitted when customer is provided (Stripe API requirement)
       customer_email: customerId ? undefined : email,
-      metadata: { tier, businessName, email },
+      metadata: {
+        plan: selectedPlan,
+        interval: selectedInterval,
+        source: 'signup',
+        businessName,
+        email,
+        account_identifier: email,
+      },
     });
 
     return NextResponse.json({ url: session.url });

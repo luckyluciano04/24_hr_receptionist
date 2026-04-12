@@ -1,15 +1,102 @@
 import { NextRequest, NextResponse } from 'next/server';
+import type Stripe from 'stripe';
 import { stripe } from '@/lib/stripe';
 import { createAdminClient } from '@/lib/supabase/server';
-import {
-  sendConfirmationEmail,
-  sendPaymentFailedEmail,
-  sendCancellationEmail,
-} from '@/lib/resend';
+import { sendCancellationEmail, sendConfirmationEmail, sendPaymentFailedEmail } from '@/lib/resend';
 import { logger } from '@/lib/logger';
-import { APP_URL } from '@/lib/constants';
-import type Stripe from 'stripe';
-import type { Tier } from '@/lib/constants';
+import { getBillingEnv } from '@/lib/billing/env';
+import {
+  isBillingInterval,
+  isPlan,
+  resolvePlanFromPriceId,
+  type BillingInterval,
+  type Plan,
+} from '@/lib/billing/config';
+
+interface BillingSyncPayload {
+  customerId: string;
+  subscriptionId: string;
+  plan: Plan;
+  interval: BillingInterval;
+  status: string;
+  currentPeriodEnd: string | null;
+  cancelAtPeriodEnd: boolean;
+  canceledAt: string | null;
+  cancellationReason: string | null;
+}
+
+function toIsoTimestamp(unixSeconds: number | null | undefined): string | null {
+  if (!unixSeconds) {
+    return null;
+  }
+  return new Date(unixSeconds * 1000).toISOString();
+}
+
+async function resolvePlanAndIntervalFromSubscription(
+  subscription: Stripe.Subscription,
+): Promise<{ plan: Plan; interval: BillingInterval }> {
+  const metadataPlan = subscription.metadata?.plan;
+  const metadataInterval = subscription.metadata?.interval;
+  if (
+    metadataPlan &&
+    metadataInterval &&
+    isPlan(metadataPlan) &&
+    isBillingInterval(metadataInterval)
+  ) {
+    return { plan: metadataPlan, interval: metadataInterval };
+  }
+
+  const priceId = subscription.items.data[0]?.price?.id;
+  if (!priceId) {
+    throw new Error(`[stripe.webhook] Unable to resolve plan for subscription ${subscription.id}`);
+  }
+
+  return resolvePlanFromPriceId(priceId);
+}
+
+async function syncBillingByCustomer(
+  supabase: ReturnType<typeof createAdminClient>,
+  payload: BillingSyncPayload,
+) {
+  await supabase
+    .from('profiles')
+    .update({
+      tier: payload.plan,
+      billing_interval: payload.interval,
+      subscription_status: payload.status,
+      current_period_end: payload.currentPeriodEnd,
+      stripe_customer_id: payload.customerId,
+      stripe_subscription_id: payload.subscriptionId,
+      cancel_at_period_end: payload.cancelAtPeriodEnd,
+      canceled_at: payload.canceledAt,
+      cancellation_reason: payload.cancellationReason,
+    })
+    .eq('stripe_customer_id', payload.customerId);
+}
+
+async function syncFromSubscription(
+  supabase: ReturnType<typeof createAdminClient>,
+  subscription: Stripe.Subscription,
+) {
+  const customerId = subscription.customer as string;
+  if (!customerId) {
+    throw new Error(`[stripe.webhook] Missing customer ID on subscription ${subscription.id}`);
+  }
+
+  const { plan, interval } = await resolvePlanAndIntervalFromSubscription(subscription);
+  await syncBillingByCustomer(supabase, {
+    customerId,
+    subscriptionId: subscription.id,
+    plan,
+    interval,
+    status: subscription.status,
+    currentPeriodEnd: toIsoTimestamp(subscription.current_period_end),
+    cancelAtPeriodEnd: subscription.cancel_at_period_end,
+    canceledAt: toIsoTimestamp(subscription.canceled_at),
+    cancellationReason:
+      subscription.cancellation_details?.comment ?? subscription.metadata?.cancellation_reason ?? null,
+  });
+}
 
 export async function POST(request: NextRequest) {
   const body = await request.text();
@@ -19,43 +106,35 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Missing signature' }, { status: 401 });
   }
 
-  if (!process.env.STRIPE_WEBHOOK_SECRET) {
-    logger.error('stripe.webhook', { msg: 'STRIPE_WEBHOOK_SECRET is not configured' });
-    return NextResponse.json({ error: 'Webhook secret not configured' }, { status: 500 });
-  }
+  const { STRIPE_WEBHOOK_SECRET, NEXT_PUBLIC_SITE_URL } = getBillingEnv();
 
   let event: Stripe.Event;
   try {
-    event = stripe.webhooks.constructEvent(body, signature, process.env.STRIPE_WEBHOOK_SECRET);
+    event = stripe.webhooks.constructEvent(body, signature, STRIPE_WEBHOOK_SECRET);
   } catch (err) {
     logger.error('stripe.webhook.signature_failed', { error: String(err) });
     return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
   }
 
   const supabase = createAdminClient();
-
   logger.info('stripe.webhook.received', { eventType: event.type, eventId: event.id });
 
   try {
     switch (event.type) {
       case 'checkout.session.completed': {
         const session = event.data.object as Stripe.Checkout.Session;
-        const email = session.customer_details?.email ?? (session.metadata?.email as string);
-        const businessName = (session.metadata?.businessName as string) ?? '';
-        const tier = ((session.metadata?.tier as string) ?? 'starter') as Tier;
+        const email = session.customer_details?.email ?? session.metadata?.email;
+        const businessName = session.metadata?.businessName ?? '';
         const customerId = session.customer as string;
         const subscriptionId = session.subscription as string;
 
-        logger.info('stripe.checkout.completed', {
-          sessionId: session.id,
-          customerId,
-          tier,
-          amount: session.amount_total,
-        });
+        if (!email || !customerId || !subscriptionId) {
+          break;
+        }
 
-        if (!email) break;
+        const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+        const { plan, interval } = await resolvePlanAndIntervalFromSubscription(subscription);
 
-        // Ensure a Supabase auth user exists so the customer can log in
         let userId: string;
         try {
           const normalizedEmail = email.trim().toLowerCase();
@@ -63,6 +142,7 @@ export async function POST(request: NextRequest) {
           if (listUsersError) {
             throw new Error(`Failed to list auth users: ${listUsersError.message}`);
           }
+
           const existingUser = usersPage.users.find(
             (user) => user.email?.trim().toLowerCase() === normalizedEmail,
           );
@@ -70,12 +150,11 @@ export async function POST(request: NextRequest) {
           if (existingUser) {
             userId = existingUser.id;
           } else {
-            const { data: newUser, error: createError } =
-              await supabase.auth.admin.createUser({
-                email,
-                email_confirm: true,
-                user_metadata: { business_name: businessName },
-              });
+            const { data: newUser, error: createError } = await supabase.auth.admin.createUser({
+              email,
+              email_confirm: true,
+              user_metadata: { business_name: businessName },
+            });
             if (createError || !newUser.user) {
               throw new Error(
                 `Failed to create auth user: ${createError?.message ?? 'unknown'}`,
@@ -84,82 +163,64 @@ export async function POST(request: NextRequest) {
             userId = newUser.user.id;
           }
         } catch (authErr) {
-          logger.error('stripe.checkout.auth_user_error', {
-            email,
-            error: String(authErr),
-          });
+          logger.error('stripe.checkout.auth_user_error', { email, error: String(authErr) });
           break;
         }
 
         await supabase.from('profiles').upsert(
           {
-            id: userId, // Required for INSERT: explicitly set the primary key for new profiles
+            id: userId,
             email,
             business_name: businessName,
-            tier,
+            tier: plan,
+            billing_interval: interval,
             stripe_customer_id: customerId,
             stripe_subscription_id: subscriptionId,
-            subscription_status: 'active',
+            subscription_status: subscription.status,
+            current_period_end: toIsoTimestamp(subscription.current_period_end),
+            cancel_at_period_end: subscription.cancel_at_period_end,
+            canceled_at: toIsoTimestamp(subscription.canceled_at),
+            cancellation_reason:
+              subscription.cancellation_details?.comment ??
+              subscription.metadata?.cancellation_reason ??
+              null,
           },
-          { onConflict: 'stripe_customer_id' },
+          { onConflict: 'email' },
         );
 
-        // Generate a one-time magic link so the user can access onboarding immediately
         let magicLink: string | undefined;
         try {
           const { data: linkData } = await supabase.auth.admin.generateLink({
             type: 'magiclink',
             email,
-            options: { redirectTo: `${APP_URL}/onboarding` },
+            options: { redirectTo: `${NEXT_PUBLIC_SITE_URL}/onboarding` },
           });
           magicLink = linkData?.properties?.action_link ?? undefined;
         } catch (linkErr) {
-          logger.warn('stripe.checkout.magic_link_error', {
-            email,
-            error: String(linkErr),
-          });
+          logger.warn('stripe.checkout.magic_link_error', { email, error: String(linkErr) });
         }
 
-        await sendConfirmationEmail(email, businessName || email, tier, magicLink);
+        await sendConfirmationEmail(email, businessName || email, plan, magicLink);
         break;
       }
 
+      case 'customer.subscription.created':
       case 'customer.subscription.updated': {
-        const sub = event.data.object as Stripe.Subscription;
-        const customerId = sub.customer as string;
-        const tier = (sub.metadata?.tier ?? 'starter') as Tier;
-        const status = sub.status === 'active' || sub.status === 'trialing' ? 'active' : 'inactive';
-
-        logger.info('stripe.subscription.updated', {
-          subscriptionId: sub.id,
-          customerId,
-          tier,
-          status,
-        });
-
-        await supabase
-          .from('profiles')
-          .update({ tier, subscription_status: status, stripe_subscription_id: sub.id })
-          .eq('stripe_customer_id', customerId);
+        const subscription = event.data.object as Stripe.Subscription;
+        await syncFromSubscription(supabase, subscription);
         break;
       }
 
       case 'customer.subscription.deleted': {
-        const sub = event.data.object as Stripe.Subscription;
-        const customerId = sub.customer as string;
+        const subscription = event.data.object as Stripe.Subscription;
+        await syncFromSubscription(supabase, subscription);
 
-        logger.info('stripe.subscription.deleted', { subscriptionId: sub.id, customerId });
-
+        const customerId = subscription.customer as string;
         const { data: profile } = await supabase
           .from('profiles')
           .select('email, business_name')
           .eq('stripe_customer_id', customerId)
           .single();
-
-        await supabase
-          .from('profiles')
-          .update({ subscription_status: 'inactive' })
-          .eq('stripe_customer_id', customerId);
 
         if (profile?.email) {
           await sendCancellationEmail(profile.email, profile.business_name ?? profile.email);
@@ -167,24 +228,37 @@ export async function POST(request: NextRequest) {
         break;
       }
 
+      case 'invoice.paid': {
+        const invoice = event.data.object as Stripe.Invoice;
+        const subscriptionId =
+          typeof invoice.subscription === 'string' ? invoice.subscription : invoice.subscription?.id;
+        if (!subscriptionId) {
+          break;
+        }
+        const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+        await syncFromSubscription(supabase, subscription);
+        break;
+      }
+
       case 'invoice.payment_failed': {
         const invoice = event.data.object as Stripe.Invoice;
         const customerId = invoice.customer as string;
 
-        logger.warn('stripe.invoice.payment_failed', {
-          invoiceId: invoice.id,
-          customerId,
-          amount: invoice.amount_due,
-        });
+        if (customerId) {
+          await supabase
+            .from('profiles')
+            .update({ subscription_status: 'past_due' })
+            .eq('stripe_customer_id', customerId);
 
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('email, business_name')
-          .eq('stripe_customer_id', customerId)
-          .single();
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('email, business_name')
+            .eq('stripe_customer_id', customerId)
+            .single();
 
-        if (profile?.email) {
-          await sendPaymentFailedEmail(profile.email, profile.business_name ?? profile.email);
+          if (profile?.email) {
+            await sendPaymentFailedEmail(profile.email, profile.business_name ?? profile.email);
+          }
         }
         break;
       }
@@ -199,3 +273,4 @@ export async function POST(request: NextRequest) {
 
   return NextResponse.json({ received: true });
 }
+

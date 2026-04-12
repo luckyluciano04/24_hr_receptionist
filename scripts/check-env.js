@@ -15,6 +15,7 @@ loadEnvConfig(process.cwd());
 
 const REQUIRED = [
   'STRIPE_SECRET_KEY',
+  'NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY',
   'STRIPE_WEBHOOK_SECRET',
   'STRIPE_PRICE_STARTER',
   'STRIPE_PRICE_PROFESSIONAL',
@@ -28,7 +29,7 @@ const REQUIRED = [
   'OPENAI_API_KEY',
   'RESEND_API_KEY',
   'GOOGLE_SERVICE_ACCOUNT_JSON',
-  'NEXT_PUBLIC_APP_URL',
+  'NEXT_PUBLIC_SITE_URL',
 ];
 
 const missing = REQUIRED.filter((key) => !process.env[key]);
@@ -55,9 +56,24 @@ try {
 }
 
 try {
-  new URL(process.env.NEXT_PUBLIC_APP_URL);
+  new URL(process.env.NEXT_PUBLIC_SITE_URL);
 } catch {
-  console.error('[check-env] ❌ Build blocked — NEXT_PUBLIC_APP_URL must be a valid absolute URL.');
+  console.error('[check-env] ❌ Build blocked — NEXT_PUBLIC_SITE_URL must be a valid absolute URL.');
+  process.exit(1);
+}
+
+const annualPriceEnvKeys = [
+  'STRIPE_PRICE_STARTER_ANNUAL',
+  'STRIPE_PRICE_PROFESSIONAL_ANNUAL',
+  'STRIPE_PRICE_ENTERPRISE_ANNUAL',
+];
+const annualValues = annualPriceEnvKeys.map((key) => process.env[key]);
+const hasSomeAnnual = annualValues.some(Boolean);
+if (hasSomeAnnual && annualValues.some((value) => !value)) {
+  console.error(
+    '[check-env] ❌ Build blocked — Annual billing requires all annual price IDs:\n  ' +
+      annualPriceEnvKeys.join('\n  '),
+  );
   process.exit(1);
 }
 

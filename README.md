@@ -87,6 +87,10 @@ Open `.env.local` and fill in every value (see sections below for how to get eac
    - `STRIPE_PRICE_STARTER=price_...`
    - `STRIPE_PRICE_PROFESSIONAL=price_...`
    - `STRIPE_PRICE_ENTERPRISE=price_...`
+   - Optional annual billing:
+     - `STRIPE_PRICE_STARTER_ANNUAL=price_...`
+     - `STRIPE_PRICE_PROFESSIONAL_ANNUAL=price_...`
+     - `STRIPE_PRICE_ENTERPRISE_ANNUAL=price_...`
 3. Copy your secret key to `STRIPE_SECRET_KEY`
 4. Copy your publishable key to `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`
 
@@ -116,10 +120,12 @@ npx ngrok http 3000
 2. Go to Stripe Dashboard → Developers → Webhooks → Add endpoint
 3. URL: `https://abc123.ngrok.io/api/stripe/webhook`
 4. Select events:
-   - `checkout.session.completed`
-   - `customer.subscription.updated`
-   - `customer.subscription.deleted`
-   - `invoice.payment_failed`
+    - `checkout.session.completed`
+    - `customer.subscription.created`
+    - `customer.subscription.updated`
+    - `customer.subscription.deleted`
+    - `invoice.paid`
+    - `invoice.payment_failed`
 5. Copy the webhook signing secret → `STRIPE_WEBHOOK_SECRET`
 
 ### Production (Vercel)
@@ -241,6 +247,9 @@ vercel env add STRIPE_WEBHOOK_SECRET
 vercel env add STRIPE_PRICE_STARTER
 vercel env add STRIPE_PRICE_PROFESSIONAL
 vercel env add STRIPE_PRICE_ENTERPRISE
+vercel env add STRIPE_PRICE_STARTER_ANNUAL
+vercel env add STRIPE_PRICE_PROFESSIONAL_ANNUAL
+vercel env add STRIPE_PRICE_ENTERPRISE_ANNUAL
 vercel env add TWILIO_ACCOUNT_SID
 vercel env add TWILIO_AUTH_TOKEN
 vercel env add TWILIO_PHONE_NUMBER
@@ -249,7 +258,7 @@ vercel env add RESEND_API_KEY
 vercel env add GOOGLE_SERVICE_ACCOUNT_JSON
 vercel env add NEXT_PUBLIC_TALLY_FORM_ID
 vercel env add TALLY_SIGNING_SECRET
-vercel env add NEXT_PUBLIC_APP_URL
+vercel env add NEXT_PUBLIC_SITE_URL
 ```
 
 ### Vercel project settings to verify
@@ -267,7 +276,7 @@ vercel env add NEXT_PUBLIC_APP_URL
 1. In Vercel Dashboard → your project → **Settings → Domains**
 2. Add `24hrreceptionist.com` and `www.24hrreceptionist.com`
 3. Update your DNS records per the Vercel instructions
-4. Update `NEXT_PUBLIC_APP_URL` to your production domain
+4. Update `NEXT_PUBLIC_SITE_URL` to your production domain
 
 ### Redeploy with env vars
 
@@ -288,8 +297,9 @@ vercel --prod
 - [ ] Stripe products + prices created (Starter $97, Professional $197, Enterprise $397)
 - [ ] Stripe price IDs saved to Vercel env vars
 - [ ] Stripe webhook configured with production URL (`/api/stripe/webhook`)
-- [ ] Stripe webhook events: `checkout.session.completed`, `customer.subscription.updated`, `customer.subscription.deleted`, `invoice.payment_failed`
+- [ ] Stripe webhook events: `checkout.session.completed`, `customer.subscription.created`, `customer.subscription.updated`, `customer.subscription.deleted`, `invoice.paid`, `invoice.payment_failed`
 - [ ] Stripe Billing Portal enabled in Dashboard (for `/api/stripe/portal`)
+- [ ] Billing health check passes at `/api/health/billing`
 
 ### Twilio
 - [ ] Twilio phone number purchased

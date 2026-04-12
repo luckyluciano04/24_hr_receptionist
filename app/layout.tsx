@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
 
-const metadataBase = new URL(process.env.NEXT_PUBLIC_APP_URL ?? "https://24hrreceptionist.com");
+const metadataBase = new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "https://24hrreceptionist.com");
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",

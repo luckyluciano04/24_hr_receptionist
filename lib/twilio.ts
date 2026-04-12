@@ -70,9 +70,9 @@ export async function provisionPhoneNumber(areaCode: string = '415'): Promise<st
 
   const purchased = await client.incomingPhoneNumbers.create({
     phoneNumber: available[0].phoneNumber,
-    voiceUrl: `${process.env.NEXT_PUBLIC_APP_URL}/api/twilio/voice`,
+    voiceUrl: `${process.env.NEXT_PUBLIC_SITE_URL}/api/twilio/voice`,
     voiceMethod: 'POST',
-    statusCallback: `${process.env.NEXT_PUBLIC_APP_URL}/api/twilio/status`,
+    statusCallback: `${process.env.NEXT_PUBLIC_SITE_URL}/api/twilio/status`,
     statusCallbackMethod: 'POST',
   });
 

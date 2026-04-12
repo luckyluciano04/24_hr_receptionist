@@ -19,7 +19,7 @@ function capitalize(str: string): string {
 }
 
 const FROM = 'noreply@24hrreceptionist.com';
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'https://24hrreceptionist.com';
+const APP_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://24hrreceptionist.com';
 
 function baseLayout(content: string): string {
   return `<!DOCTYPE html>

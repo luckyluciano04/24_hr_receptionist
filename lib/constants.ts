@@ -1,10 +1,6 @@
-export const STRIPE_PRICE_IDS = {
-  starter: process.env.STRIPE_PRICE_STARTER ?? '',
-  professional: process.env.STRIPE_PRICE_PROFESSIONAL ?? '',
-  enterprise: process.env.STRIPE_PRICE_ENTERPRISE ?? '',
-} as const;
+import type { Plan } from '@/lib/billing/config';
 
-export type Tier = keyof typeof STRIPE_PRICE_IDS;
+export type Tier = Plan;
 
 export const TIER_LIMITS: Record<Tier, number | null> = {
   starter: 100,
@@ -31,6 +27,6 @@ export const TIER_FEATURES: Record<Tier, string[]> = {
   ],
 };
 
-export const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'https://24hrreceptionist.com';
+export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://24hrreceptionist.com';
 
 export const TRIAL_PERIOD_DAYS = 7;

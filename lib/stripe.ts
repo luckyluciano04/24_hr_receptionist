@@ -1,10 +1,8 @@
 import Stripe from 'stripe';
+import { getBillingEnv } from '@/lib/billing/env';
 
 function getStripe(): Stripe {
-  const key = process.env.STRIPE_SECRET_KEY;
-  if (!key) {
-    throw new Error('Missing STRIPE_SECRET_KEY environment variable');
-  }
+  const { STRIPE_SECRET_KEY: key } = getBillingEnv();
   return new Stripe(key, {
     apiVersion: '2026-02-25.clover',
     typescript: true,
