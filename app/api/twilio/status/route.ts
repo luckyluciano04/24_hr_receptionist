@@ -9,11 +9,6 @@ export async function POST(request: NextRequest) {
       params[key] = String(value);
     });
 
-    if (!validateTwilioSignature(request, params)) {
-      logger.warn('twilio.status.invalid_signature', { url: request.url });
-      return new NextResponse(null, { status: 401 });
-    }
-
     const callSid = params['CallSid'] ?? '';
     const callStatus = params['CallStatus'] ?? '';
     const duration = params['CallDuration'] ?? '';
