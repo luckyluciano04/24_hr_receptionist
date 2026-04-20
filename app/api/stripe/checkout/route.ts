@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { stripe } from '@/lib/stripe';
 import { STRIPE_PRICE_IDS, TRIAL_PERIOD_DAYS, APP_URL, type Tier } from '@/lib/constants';
-import { createAdminClient } from '@/lib/supabase/server';
+import { createAdminClient } from '../../../../lib/supabase/server';
 
 export async function POST(request: NextRequest) {
   try {

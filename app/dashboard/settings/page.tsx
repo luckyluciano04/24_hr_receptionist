@@ -5,7 +5,7 @@ import { Sidebar } from '@/components/dashboard/Sidebar';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Badge } from '@/components/ui/Badge';
-import { createClient } from '@/lib/supabase/client';
+import { createClient } from '../../../lib/supabase/client';
 import { TIER_PRICES } from '@/lib/constants';
 import type { Tier } from '@/lib/constants';
 

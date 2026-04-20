@@ -1,4 +1,4 @@
-import { createAdminClient } from '@/lib/supabase/server';
+import { createAdminClient } from './supabase/server';
 import { sendSMS } from '@/lib/twilio';
 import { sendCallNotificationEmail } from '@/lib/resend';
 import { appendRow } from '@/lib/sheets';

@@ -1,10 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createAdminClient } from '@/lib/supabase/server';
-import { validateTwilioSignature } from '@/lib/twilio';
-import { logger } from '@/lib/logger';
-import { completeCall } from '@/lib/call-processing';
-
-export const maxDuration = 60;
+import { createAdminClient } from '../../../../lib/supabase/server';
+import { buildSystemPrompt } from '@/lib/openai';
+import { sendSMS } from '@/lib/twilio';
+import { sendCallNotificationEmail } from '@/lib/resend';
+import { appendRow } from '@/lib/sheets';
 
 // XML-escape a value for use in TwiML attributes
 function xmlEscape(str: string): string {

@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createAdminClient } from '@/lib/supabase/server';
-import { validateTwilioSignature } from '@/lib/twilio';
-import { logger } from '@/lib/logger';
+import { createAdminClient } from '../../../../lib/supabase/server';
 
 export async function POST(request: NextRequest) {
   try {
