@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '../../../../lib/supabase/server';
+import { logger } from '@/lib/logger';
+import { validateTwilioSignature } from '@/lib/twilio';
+import { completeCall } from '@/lib/call-processing';
 
 // XML-escape a value for use in TwiML attributes
 function xmlEscape(str: string): string {
