@@ -7,8 +7,8 @@ function getSupabaseUrl(): string {
   return url;
 }
 
-export async function createClient() {
-  const cookieStore = await cookies();
+export function createClient() {
+  const cookieStore = cookies();
   const url = getSupabaseUrl();
   const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   if (!key) throw new Error('Missing NEXT_PUBLIC_SUPABASE_ANON_KEY');
@@ -24,7 +24,7 @@ export async function createClient() {
             cookieStore.set(name, value, options),
           );
         } catch {
-          // Called from a Server Component — cookies can't be set
+          // Server Component context — ignore
         }
       },
     },
