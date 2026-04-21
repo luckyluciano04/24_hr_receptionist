@@ -20,13 +20,13 @@ export async function GET(request: NextRequest) {
 
     let query = supabase
       .from('calls')
-      .select('*')
-      .eq('profile_id', user.id)
+      .select('id, from_number, to_number, status, duration, created_at, recording_url, call_transcript, call_summary')
+      .eq('user_id', user.id)
       .order('created_at', { ascending: false })
       .limit(limit);
 
     if (search) {
-      query = query.or(`caller_name.ilike.%${search}%,caller_phone.ilike.%${search}%,call_summary.ilike.%${search}%`);
+      query = query.or(`from_number.ilike.%${search}%,to_number.ilike.%${search}%`);
     }
     if (from) {
       query = query.gte('created_at', from);
@@ -70,7 +70,7 @@ export async function DELETE(request: NextRequest) {
       .from('calls')
       .delete()
       .eq('id', id)
-      .eq('profile_id', user.id);
+      .eq('user_id', user.id);
 
     if (error) throw error;
 

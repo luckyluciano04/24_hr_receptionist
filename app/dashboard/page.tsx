@@ -9,12 +9,14 @@ import type { Tier } from '@/lib/constants';
 
 interface Call {
   id: string;
-  caller_name: string | null;
-  caller_phone: string | null;
-  call_summary: string | null;
-  call_duration_seconds: number | null;
+  from_number: string | null;
+  to_number: string | null;
+  status: string | null;
+  duration: number | null;
   created_at: string;
-  delivered_via: string[] | null;
+  recording_url: string | null;
+  call_transcript: string | null;
+  call_summary: string | null;
 }
 
 export default async function DashboardPage() {
@@ -24,7 +26,7 @@ export default async function DashboardPage() {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect('/signup');
+    redirect('/login');
   }
 
   const { data: profile } = await supabase
@@ -35,8 +37,8 @@ export default async function DashboardPage() {
 
   const { data: calls } = await supabase
     .from('calls')
-    .select('id, caller_name, caller_phone, call_summary, call_duration_seconds, created_at, delivered_via')
-    .eq('profile_id', user.id)
+    .select('id, from_number, to_number, status, duration, created_at, recording_url, call_transcript, call_summary')
+    .eq('user_id', user.id)
     .order('created_at', { ascending: false })
     .limit(10);
 
@@ -93,12 +95,14 @@ export default async function DashboardPage() {
                 {(calls as Call[]).map((call) => (
                   <CallCard
                     key={call.id}
-                    callerName={call.caller_name}
-                    callerPhone={call.caller_phone}
-                    summary={call.call_summary}
-                    duration={call.call_duration_seconds}
+                    fromNumber={call.from_number}
+                    toNumber={call.to_number}
+                    status={call.status}
+                    duration={call.duration}
                     createdAt={call.created_at}
-                    deliveredVia={call.delivered_via}
+                    recordingUrl={call.recording_url}
+                    callTranscript={call.call_transcript}
+                    callSummary={call.call_summary}
                   />
                 ))}
               </div>

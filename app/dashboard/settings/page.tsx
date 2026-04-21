@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { Sidebar } from '@/components/dashboard/Sidebar';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -20,6 +21,7 @@ interface Profile {
 }
 
 export default function SettingsPage() {
+  const router = useRouter();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [businessName, setBusinessName] = useState('');
   const [phone, setPhone] = useState('');
@@ -27,6 +29,17 @@ export default function SettingsPage() {
   const [isLoadingPortal, setIsLoadingPortal] = useState(false);
   const [saveMessage, setSaveMessage] = useState('');
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    const checkSession = async () => {
+      const supabase = createClient();
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        router.push('/login');
+      }
+    };
+    checkSession();
+  }, [router]);
 
   useEffect(() => {
     const supabase = createClient();

@@ -1,32 +1,17 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { stripe } from '@/lib/stripe';
-import { createClient } from '../../../../lib/supabase/server';
-import { APP_URL } from '@/lib/constants';
 
-export async function POST() {
+export async function POST(request: NextRequest) {
   try {
-    const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    const { customerId } = await request.json() as { customerId: string };
 
-    if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('stripe_customer_id')
-      .eq('id', user.id)
-      .single();
-
-    if (!profile?.stripe_customer_id) {
-      return NextResponse.json({ error: 'No billing account found' }, { status: 404 });
+    if (!customerId) {
+      return NextResponse.json({ error: 'Customer ID is required' }, { status: 400 });
     }
 
     const portalSession = await stripe.billingPortal.sessions.create({
-      customer: profile.stripe_customer_id,
-      return_url: `${APP_URL}/dashboard/settings`,
+      customer: customerId,
+      return_url: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000/dashboard/settings',
     });
 
     return NextResponse.json({ url: portalSession.url });

@@ -9,9 +9,14 @@ export default function PricingPage() {
           <Link href="/" className="text-lg font-bold text-white">
             24hr Receptionist
           </Link>
-          <Link href="/signup" className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 transition-colors">
-            Get Started
-          </Link>
+          <div className="flex items-center gap-4">
+            <Link href="/login" className="text-sm text-gray-400 hover:text-white transition-colors">
+              Sign In
+            </Link>
+            <Link href="/signup" className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 transition-colors">
+              Get Started
+            </Link>
+          </div>
         </div>
       </nav>
       <main className="pt-8">

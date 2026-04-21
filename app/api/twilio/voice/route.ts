@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '../../../../lib/supabase/server';
 import { logger } from '@/lib/logger';
 import { validateTwilioSignature } from '@/lib/twilio';
+import { sendSMS } from '@/lib/twilio';
 import { completeCall } from '@/lib/call-processing';
 
 // XML-escape a value for use in TwiML attributes
@@ -60,11 +61,29 @@ export async function POST(request: NextRequest) {
     // Save initial call record
     if (profile?.id) {
       await supabase.from('calls').insert({
-        profile_id: profile.id,
-        caller_phone: callerPhone,
+        user_id: profile.id,
+        from_number: callerPhone,
+        to_number: calledNumber,
         twilio_call_sid: callSid,
         status: 'in_progress',
       });
+
+      // Send SMS alert for inbound call if tier allows
+      if (profile.phone && (profile.tier === 'professional' || profile.tier === 'enterprise')) {
+        try {
+          await sendSMS(profile.phone, `New Call:\nFrom: ${callerPhone}\nStatus: received\nDuration: 0s`);
+          logger.info('twilio.voice.sms_sent', { callSid, to: profile.phone });
+        } catch (err) {
+          logger.error('twilio.voice.sms_failed', { callSid, error: String(err) });
+          // Retry once
+          try {
+            await sendSMS(profile.phone, `New Call:\nFrom: ${callerPhone}\nStatus: received\nDuration: 0s`);
+            logger.info('twilio.voice.sms_retry_success', { callSid, to: profile.phone });
+          } catch (retryErr) {
+            logger.error('twilio.voice.sms_retry_failed', { callSid, error: String(retryErr) });
+          }
+        }
+      }
     }
 
     return new NextResponse(twiml, {

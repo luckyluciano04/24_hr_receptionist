@@ -35,3 +35,20 @@ export function requireEnv(key: RequiredEnvVar): string {
   }
   return value;
 }
+
+/**
+ * Validates all required environment variables on startup.
+ * Call this in server-side code that runs early.
+ */
+export function validateEnvironment(): void {
+  const missing: string[] = [];
+  for (const key of REQUIRED_SERVER_ENV_VARS) {
+    if (!process.env[key]) {
+      missing.push(key);
+    }
+  }
+  if (missing.length > 0) {
+    console.error(`[env] Missing required environment variables: ${missing.join(', ')}`);
+    // Do not throw, to not crash client
+  }
+}

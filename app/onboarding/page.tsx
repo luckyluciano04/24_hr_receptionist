@@ -57,8 +57,7 @@ export default function OnboardingPage() {
       if (!user) throw new Error('Not authenticated');
       const { error: updateError } = await supabase
         .from('profiles')
-        .update({ business_name: businessName, phone })
-        .eq('id', user.id);
+        .upsert({ business_name: businessName, phone, id: user.id });
       if (updateError) throw updateError;
       setStep(2);
     } catch (err) {

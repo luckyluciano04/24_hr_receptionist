@@ -1,34 +1,36 @@
 'use client';
 
 import { useState, useCallback, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { Sidebar } from '@/components/dashboard/Sidebar';
 import { CallCard } from '@/components/dashboard/CallCard';
 import { EmptyState } from '@/components/dashboard/EmptyState';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
+import { createClient } from '../../../lib/supabase/client';
 
 interface Call {
   id: string;
-  caller_name: string | null;
-  caller_phone: string | null;
-  call_summary: string | null;
-  call_transcript: string | null;
-  call_duration_seconds: number | null;
+  from_number: string | null;
+  to_number: string | null;
+  status: string | null;
+  duration: number | null;
   created_at: string;
-  delivered_via: string[] | null;
+  recording_url: string | null;
+  call_transcript: string | null;
+  call_summary: string | null;
 }
 
 function exportToCSV(calls: Call[]) {
-  const headers = ['Date', 'Time', 'Caller Name', 'Caller Phone', 'Duration (s)', 'Summary', 'Delivered Via'];
+  const headers = ['Date', 'Time', 'From Number', 'To Number', 'Duration (s)', 'Status'];
   const escapeCSV = (val: string) => `"${val.replace(/"/g, '""')}"`;
   const rows = calls.map((c) => [
     new Date(c.created_at).toLocaleDateString(),
     new Date(c.created_at).toLocaleTimeString(),
-    c.caller_name ?? '',
-    c.caller_phone ?? '',
-    String(c.call_duration_seconds ?? ''),
-    c.call_summary ?? '',
-    (c.delivered_via ?? []).join(', '),
+    c.from_number ?? '',
+    c.to_number ?? '',
+    String(c.duration ?? ''),
+    c.status ?? '',
   ]);
   const csv = [headers, ...rows].map((r) => r.map(escapeCSV).join(',')).join('\n');
   const blob = new Blob([csv], { type: 'text/csv' });
@@ -41,12 +43,24 @@ function exportToCSV(calls: Call[]) {
 }
 
 export default function CallsPage() {
+  const router = useRouter();
   const [calls, setCalls] = useState<Call[]>([]);
   const [search, setSearch] = useState('');
   const [fromDate, setFromDate] = useState('');
   const [toDate, setToDate] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    const checkSession = async () => {
+      const supabase = createClient();
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        router.push('/login');
+      }
+    };
+    checkSession();
+  }, [router]);
 
   const fetchCalls = useCallback(async () => {
     setIsLoading(true);
@@ -127,12 +141,14 @@ export default function CallsPage() {
               {calls.map((call) => (
                 <CallCard
                   key={call.id}
-                  callerName={call.caller_name}
-                  callerPhone={call.caller_phone}
-                  summary={call.call_summary}
-                  duration={call.call_duration_seconds}
+                  fromNumber={call.from_number}
+                  toNumber={call.to_number}
+                  status={call.status}
+                  duration={call.duration}
                   createdAt={call.created_at}
-                  deliveredVia={call.delivered_via}
+                  recordingUrl={call.recording_url}
+                  callTranscript={call.call_transcript}
+                  callSummary={call.call_summary}
                 />
               ))}
             </div>

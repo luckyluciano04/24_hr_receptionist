@@ -25,6 +25,9 @@ export default function HomePage() {
             <Link href="#faq" className="text-sm text-gray-400 hover:text-white transition-colors">
               FAQ
             </Link>
+            <Link href="/login" className="text-sm text-gray-400 hover:text-white transition-colors">
+              Sign In
+            </Link>
             <Link
               href="/signup"
               className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 transition-colors"

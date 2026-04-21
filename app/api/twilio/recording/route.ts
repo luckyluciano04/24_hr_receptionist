@@ -3,6 +3,7 @@ import { completeCall } from '@/lib/call-processing';
 import { generateCallInsights, transcribeAudio } from '@/lib/openai';
 import { logger } from '@/lib/logger';
 import { validateTwilioSignature } from '@/lib/twilio';
+import { createAdminClient } from '@/lib/supabase/server';
 
 export const maxDuration = 60;
 
@@ -72,9 +73,43 @@ export async function POST(request: NextRequest) {
       return twimlMessage('We could not process your message. Please call back later. Goodbye.');
     }
 
-    const file = await fetchRecording(recordingSid);
-    const transcript = await transcribeAudio(file);
-    const { callerName, summary } = await generateCallInsights(transcript);
+    // Store recording URL
+    const recordingUrl = buildTwilioRecordingUrl(process.env.TWILIO_ACCOUNT_SID!, recordingSid);
+    const supabase = createAdminClient();
+    const { data: call } = await supabase
+      .from('calls')
+      .select('user_id')
+      .eq('twilio_call_sid', callSid)
+      .single();
+
+    if (!call?.user_id) {
+      return twimlMessage('We could not process your message. Please call back later. Goodbye.');
+    }
+
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('tier')
+      .eq('id', call.user_id)
+      .single();
+
+    const tier = profile?.tier ?? 'starter';
+
+    let transcript = '';
+    let summary = '';
+    let callerName = '';
+
+    if (tier === 'professional' || tier === 'enterprise') {
+      await supabase.from('calls').update({ recording_url: recordingUrl }).eq('twilio_call_sid', callSid);
+
+      if (tier === 'enterprise') {
+        const file = await fetchRecording(recordingSid);
+        transcript = await transcribeAudio(file);
+        const insights = await generateCallInsights(transcript);
+        callerName = insights.callerName;
+        summary = insights.summary;
+      }
+    }
+
     const completed = await completeCall({
       callSid,
       transcript,
