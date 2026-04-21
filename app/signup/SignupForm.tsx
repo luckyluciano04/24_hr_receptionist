@@ -5,7 +5,7 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import { STRIPE_PRICE_IDS, TIER_PRICES, type Tier } from '@/lib/constants';
+import { TIER_PRICES, type Tier } from '@/lib/constants';
 
 export default function SignupForm() {
   const searchParams = useSearchParams();
