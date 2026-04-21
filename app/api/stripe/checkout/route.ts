@@ -1,26 +1,35 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { stripe } from '@/lib/stripe';
-import { STRIPE_PRICE_IDS, TRIAL_PERIOD_DAYS, APP_URL, type Tier } from '@/lib/constants';
+import { TRIAL_PERIOD_DAYS, APP_URL } from '@/lib/constants';
 import { createAdminClient } from '../../../../lib/supabase/server';
 
 export async function POST(request: NextRequest) {
   try {
     const body = (await request.json()) as {
-      priceId: string;
+      tier: string;
       email: string;
       businessName: string;
     };
-    const { priceId, email, businessName } = body;
+    const { tier, email, businessName } = body;
 
-    if (!priceId || !email) {
+    if (!tier || !email) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
-    // Validate priceId is one of our known price IDs
-    const validPriceIds = Object.values(STRIPE_PRICE_IDS);
-    if (!validPriceIds.includes(priceId)) {
-      return NextResponse.json({ error: 'Invalid price ID' }, { status: 400 });
+    const STRIPE_PRICE_IDS = {
+      starter: process.env.STRIPE_PRICE_STARTER,
+      professional: process.env.STRIPE_PRICE_PROFESSIONAL,
+      enterprise: process.env.STRIPE_PRICE_ENTERPRISE,
+    };
+
+    const priceId = STRIPE_PRICE_IDS[tier as keyof typeof STRIPE_PRICE_IDS];
+
+    if (!priceId) {
+      console.error("INVALID PRICE:", { tier });
+      return NextResponse.json({ error: 'Invalid tier', tier }, { status: 400 });
     }
+
+    console.log("STRIPE DEBUG:", { tier, priceId });
 
     const supabase = createAdminClient();
 
@@ -41,11 +50,6 @@ export async function POST(request: NextRequest) {
       });
       customerId = customer.id;
     }
-
-    // Determine tier from priceId
-    const tier = (Object.entries(STRIPE_PRICE_IDS).find(
-      ([, id]) => id === priceId,
-    )?.[0] ?? 'starter') as Tier;
 
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
