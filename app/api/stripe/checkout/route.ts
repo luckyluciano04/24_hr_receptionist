@@ -6,20 +6,21 @@ import { createAdminClient } from '../../../../lib/supabase/server';
 export async function POST(request: NextRequest) {
   try {
     const body = (await request.json()) as {
-      priceId: string;
+      plan: string;
       email: string;
       businessName: string;
     };
-    const { priceId, email, businessName } = body;
+    const { plan, email, businessName } = body;
 
-    if (!priceId || !email) {
+    if (!plan || !email) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
-    // Validate priceId is one of our known price IDs
-    const validPriceIds = Object.values(STRIPE_PRICE_IDS);
-    if (!validPriceIds.includes(priceId)) {
-      return NextResponse.json({ error: 'Invalid price ID' }, { status: 400 });
+    // Validate plan and resolve price ID server-side (keeps STRIPE_PRICE_* server-only)
+    const tier = (Object.keys(STRIPE_PRICE_IDS).includes(plan) ? plan : 'starter') as Tier;
+    const priceId = STRIPE_PRICE_IDS[tier];
+    if (!priceId) {
+      return NextResponse.json({ error: 'Invalid plan' }, { status: 400 });
     }
 
     const supabase = createAdminClient();
@@ -41,11 +42,6 @@ export async function POST(request: NextRequest) {
       });
       customerId = customer.id;
     }
-
-    // Determine tier from priceId
-    const tier = (Object.entries(STRIPE_PRICE_IDS).find(
-      ([, id]) => id === priceId,
-    )?.[0] ?? 'starter') as Tier;
 
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
