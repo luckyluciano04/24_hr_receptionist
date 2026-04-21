@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import { createClient } from '../../lib/supabase/client';
+import { createClient } from '@/lib/supabase/client';
 
 const STEPS = [
   { id: 1, title: 'Business Info' },
