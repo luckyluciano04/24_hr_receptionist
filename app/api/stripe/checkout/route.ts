@@ -12,8 +12,13 @@ export async function POST(request: NextRequest) {
     };
     const { tier, email, businessName } = body;
 
+    console.log("CHECKOUT INPUT:", { tier, email, businessName });
+
     if (!tier || !email) {
-      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+      return NextResponse.json(
+        { error: "Missing required fields", received: { tier, email, businessName } },
+        { status: 400 }
+      );
     }
 
     const STRIPE_PRICE_IDS = {

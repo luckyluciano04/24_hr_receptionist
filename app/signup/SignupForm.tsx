@@ -28,7 +28,7 @@ export default function SignupForm() {
       const res = await fetch('/api/stripe/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ priceId, email, businessName }),
+        body: JSON.stringify({ tier: plan, email, businessName: businessName || '' }),
       });
 
       if (!res.ok) {
@@ -82,7 +82,6 @@ export default function SignupForm() {
               placeholder="Mike's Plumbing"
               value={businessName}
               onChange={(e) => setBusinessName(e.target.value)}
-              required
             />
 
             {error && (
