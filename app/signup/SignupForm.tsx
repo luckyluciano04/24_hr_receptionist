@@ -17,8 +17,6 @@ export default function SignupForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const priceId = STRIPE_PRICE_IDS[plan] || STRIPE_PRICE_IDS.starter;
-
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setIsLoading(true);
