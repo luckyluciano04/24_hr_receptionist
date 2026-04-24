@@ -1,7 +1,7 @@
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 
-export function createAdminClient() {
+export function createAdminClient() {"fix: resolve async cookies usage in supabase admin client"
   const cookieStore = await cookies();
 
   return createServerClient(
