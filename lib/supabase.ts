@@ -9,10 +9,10 @@ export function createClient() {
   );
 }
 
-export async function createServerClient() {
+export async function createSSRServerClient(...)() {
   const cookieStore = await cookies();
 
-  return createServerClient(
+  return createSSRServerClient
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
@@ -35,7 +35,7 @@ export async function createServerClient() {
 }
 
 export function createAdminClient() {
-  return createServerClient(
+  return createSSRServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!,
     {
