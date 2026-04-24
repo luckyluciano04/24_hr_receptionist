@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createAdminClient } from '../../../../lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/server';
 import { appendRow } from '@/lib/sheets';
 import { sendWelcomeEmail } from '@/lib/resend';
 
