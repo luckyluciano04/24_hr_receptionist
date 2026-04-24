@@ -18,6 +18,7 @@ export async function completeCall({
   callerName,
   duration,
 }: CompletedCallPayload): Promise<boolean> {
+  void _transcript;
   const supabase = createAdminClient();
 
   const { data: call } = await supabase
