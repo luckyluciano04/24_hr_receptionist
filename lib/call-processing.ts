@@ -13,7 +13,7 @@ export interface CompletedCallPayload {
 
 export async function completeCall({
   callSid,
-  transcript,
+  transcript: _transcript,
   summary,
   callerName,
   duration,
@@ -24,7 +24,7 @@ export async function completeCall({
     .from('calls')
     .select('user_id, from_number')
     .eq('twilio_call_sid', callSid)
-    .single();
+     .single();
 
   if (!call) {
     return false;
