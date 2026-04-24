@@ -49,13 +49,10 @@ export async function completeCall({
 
   // Update usage tracking
   if (duration > 0) {
-    await supabase
-      .from('profiles')
-      .update({
-        usage_calls: supabase.raw('COALESCE(usage_calls, 0) + 1'),
-        usage_minutes: supabase.raw('COALESCE(usage_minutes, 0) + ?', [Math.ceil(duration / 60)]),
-      })
-      .eq('id', call.user_id);
+    await supabase.rpc('increment_calls', {
+  profile_id: call.user_id,
+  minutes: Math.ceil(duration / 60),
+});
   }
 
   const deliveredVia: string[] = [];
