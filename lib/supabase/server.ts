@@ -1,6 +1,11 @@
+import { createClient } from '@supabase/supabase-js';
 
-import { createBrowserClient, createServerClient as createSSRServerClient } from '@supabase/ssr';
-import { cookies } from 'next/headers';
+export function createAdminClient() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
+}import { cookies } from 'next/headers';
 
 // Validate environment on first import
 validateEnvironment();
