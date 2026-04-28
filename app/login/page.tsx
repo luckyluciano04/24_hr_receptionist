@@ -34,35 +34,59 @@ export default function Page() {
     setSent(true);
   }
 
+  // AFTER SUBMIT
   if (sent) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-black text-white px-6">
         <div className="max-w-md w-full rounded-2xl border border-white/10 bg-white/5 p-6">
-          <h2 className="text-2xl font-semibold">Check your email</h2>
-          <p className="mt-2 text-white/70">
-            We sent you a login link. Open it to continue.
+          
+          <h1 className="text-3xl font-bold">
+            Check your email
+          </h1>
+
+          <p className="mt-3 text-white/70">
+            Your secure access link has been sent.
           </p>
+
+          <p className="mt-2 text-sm text-white/50">
+            Opens instantly. No password required.
+          </p>
+
           <div className="mt-6">
             <Link
               href="/pricing"
-              className="inline-flex items-center justify-center rounded-xl bg-blue-600 px-4 py-3 font-medium text-white"
+              className="w-full block text-center rounded-xl bg-blue-600 px-4 py-3 font-semibold text-white"
             >
-              View pricing and start
+              View plans while you wait
             </Link>
           </div>
+
         </div>
       </div>
     );
   }
 
+  // MAIN LOGIN UI
   return (
     <div className="min-h-screen flex items-center justify-center bg-black text-white px-6">
       <div className="max-w-md w-full rounded-2xl border border-white/10 bg-white/5 p-6">
-        <h1 className="text-3xl font-semibold">24hr Receptionist</h1>
-        <p className="mt-2 text-white/70">
-          Sign in to continue, or go straight to pricing.
+
+        {/* BRAND */}
+        <p className="text-sm text-white/50 uppercase tracking-wide">
+          24hrReceptionist.com
         </p>
 
+        {/* HEADLINE (HIGH IMPACT) */}
+        <h1 className="mt-2 text-3xl font-bold leading-tight">
+          Access your AI receptionist
+        </h1>
+
+        {/* SUBHEAD */}
+        <p className="mt-2 text-white/70">
+          Every call answered. Every lead captured. Instantly.
+        </p>
+
+        {/* FORM */}
         <form onSubmit={handleSubmit} className="mt-6 space-y-4">
           <input
             type="email"
@@ -76,23 +100,35 @@ export default function Page() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full rounded-xl bg-blue-600 px-4 py-3 font-medium text-white disabled:opacity-60"
+            className="w-full rounded-xl bg-blue-600 hover:bg-blue-700 transition px-4 py-3 font-semibold text-white disabled:opacity-60"
           >
-            {loading ? 'Sending...' : 'Send magic link'}
+            {loading ? 'Sending secure link...' : 'Send secure access link'}
           </button>
         </form>
 
-        {error && <p className="mt-3 text-red-400">{error}</p>}
+        {error && (
+          <p className="mt-3 text-red-400 text-sm">
+            {error}
+          </p>
+        )}
 
+        {/* SECONDARY CTA */}
         <div className="mt-6 border-t border-white/10 pt-4">
           <Link
             href="/pricing"
-            className="inline-flex w-full items-center justify-center rounded-xl border border-white/10 px-4 py-3 font-medium text-white"
+            className="w-full block text-center rounded-xl border border-white/15 px-4 py-3 font-medium text-white"
           >
             See pricing
           </Link>
         </div>
+
+        {/* TRUST LINE */}
+        <p className="mt-4 text-xs text-white/40 text-center">
+          No password • Instant access • Enterprise-grade security
+        </p>
+
       </div>
     </div>
   );
 }
+    
