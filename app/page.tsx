@@ -1,66 +1,34 @@
 import Link from 'next/link';
-import { Hero } from '@/components/landing/Hero';
-import { HowItWorks } from '@/components/landing/HowItWorks';
-import { SocialProof } from '@/components/landing/SocialProof';
-import { Pricing } from '@/components/landing/Pricing';
-import { FAQ } from '@/components/landing/FAQ';
-import { CTA } from '@/components/landing/CTA';
 
-export default function HomePage() {
+export default function Home() {
   return (
-    <div className="min-h-screen bg-[#0A0A0A]">
-      {/* Nav */}
-      <nav className="sticky top-0 z-40 border-b border-white/10 bg-[#0A0A0A]/90 backdrop-blur">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4">
-          <Link href="/" className="text-lg font-bold text-white">
-            24hr Receptionist
+    <main className="min-h-screen bg-black text-white">
+      <section className="mx-auto flex min-h-screen max-w-5xl flex-col justify-center px-6 py-20">
+        <p className="text-sm uppercase tracking-[0.3em] text-white/50">
+          24hr Receptionist
+        </p>
+        <h1 className="mt-4 max-w-2xl text-5xl font-semibold leading-tight">
+          Capture every call, route every lead, and never miss a customer again.
+        </h1>
+        <p className="mt-6 max-w-xl text-lg text-white/70">
+          AI receptionist, call handling, follow-up, and lead capture in one system.
+        </p>
+
+        <div className="mt-10 flex flex-col gap-3 sm:flex-row">
+          <Link
+            href="/pricing"
+            className="inline-flex items-center justify-center rounded-xl bg-blue-600 px-6 py-3 font-medium text-white"
+          >
+            Start now
           </Link>
-          <div className="hidden items-center gap-6 sm:flex">
-            <Link href="#how-it-works" className="text-sm text-gray-400 hover:text-white transition-colors">
-              How It Works
-            </Link>
-            <Link href="#pricing" className="text-sm text-gray-400 hover:text-white transition-colors">
-              Pricing
-            </Link>
-            <Link href="#faq" className="text-sm text-gray-400 hover:text-white transition-colors">
-              FAQ
-            </Link>
-            <Link href="/login" className="text-sm text-gray-400 hover:text-white transition-colors">
-              Sign In
-            </Link>
-            <Link
-              href="/signup"
-              className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 transition-colors"
-            >
-              Get Started
-            </Link>
-          </div>
+          <Link
+            href="/login"
+            className="inline-flex items-center justify-center rounded-xl border border-white/15 px-6 py-3 font-medium text-white"
+          >
+            Sign in
+          </Link>
         </div>
-      </nav>
-
-      <main>
-        <Hero />
-        <HowItWorks />
-        <SocialProof />
-        <Pricing />
-        <FAQ />
-        <CTA />
-      </main>
-
-      <footer className="border-t border-white/10 px-4 py-10">
-        <div className="mx-auto max-w-6xl">
-          <div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
-            <p className="text-sm font-bold text-white">24hr Receptionist</p>
-            <p className="text-sm text-gray-500">
-              &copy; {new Date().getFullYear()} 24hrreceptionist.com. All rights reserved.
-            </p>
-            <div className="flex gap-4 text-sm text-gray-500">
-              <Link href="/privacy" className="hover:text-white transition-colors">Privacy</Link>
-              <Link href="/terms" className="hover:text-white transition-colors">Terms</Link>
-            </div>
-          </div>
-        </div>
-      </footer>
-    </div>
+      </section>
+    </main>
   );
 }
