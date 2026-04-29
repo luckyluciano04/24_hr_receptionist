@@ -6,7 +6,10 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "check": "npm run lint && npm run build",
+    "ship": "bash scripts/ship.sh",
+    "deploy": "bash scripts/ship.sh"
   },
   "dependencies": {
     "@supabase/ssr": "^0.9.0",
