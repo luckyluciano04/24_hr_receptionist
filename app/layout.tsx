@@ -1,6 +1,6 @@
+import './globals.css'
 import type { Metadata } from "next";
 import localFont from "next/font/local";
-import "./globals.css";
 
 const metadataBase = new URL(process.env.NEXT_PUBLIC_APP_URL ?? "https://24hrreceptionist.com");
 

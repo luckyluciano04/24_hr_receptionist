@@ -1,0 +1,10 @@
+{
+    "chat.mcp.serverSampling": {
+        "24_hr_receptionist/.vscode/mcp.json: io.github.github/github-mcp-server": {
+            "allowedModels": [
+                "copilot/auto",
+                "copilotcli/gpt-5-mini"
+            ]
+        }
+    }
+}
