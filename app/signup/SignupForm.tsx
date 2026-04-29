@@ -33,25 +33,38 @@ export default function SignUpForm() {
     setSent(true);
   }
 
-  if (sent) {
-    return <p>Check your email for a login link.</p>;
-  }
-
   return (
-    <form onSubmit={handleSubmit}>
-      <input
-        type="email"
-        placeholder="Enter your email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        required
-      />
+    <div className="w-full max-w-md mx-auto">
+      <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur p-8 shadow-2xl">
+        {sent ? (
+          <p className="text-center text-white">Check your email for a secure login link.</p>
+        ) : (
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label className="block text-sm text-slate-300">Email</label>
+              <input
+                type="email"
+                placeholder="name@company.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                autoComplete="email"
+                className="mt-2 w-full rounded-xl border border-white/10 bg-white px-4 py-3 text-slate-950 outline-none focus:ring-2 focus:ring-slate-400"
+              />
+            </div>
 
-      <button type="submit" disabled={loading}>
-        {loading ? 'Sending...' : 'Send magic link'}
-      </button>
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full rounded-xl bg-white px-4 py-3 font-semibold text-slate-950 hover:bg-slate-200 transition disabled:opacity-60"
+            >
+              {loading ? 'Sending...' : 'Send magic link'}
+            </button>
 
-      {error && <p>{error}</p>}
-    </form>
+            {error && <p className="text-red-400 text-sm">{error}</p>}
+          </form>
+        )}
+      </div>
+    </div>
   );
 }
