@@ -1,7 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+export NODE_OPTIONS="--max-old-space-size=6144"
+export NEXT_TELEMETRY_DISABLED=1
+
 echo "Running pre-deploy checks..."
+echo "Node: $(node -v)"
 npm run lint
 npm run build
 
