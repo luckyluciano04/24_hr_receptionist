@@ -9,19 +9,27 @@ export default function Page() {
   const [email, setEmail] = useState('');
   const [sent, setSent] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   async function handleSubmit(e) {
     e.preventDefault();
     setLoading(true);
+    setError('');
 
-    await supabase.auth.signInWithOtp({
+    const { error } = await supabase.auth.signInWithOtp({
       email,
       options: {
-        emailRedirectTo: \`\${window.location.origin}/api/auth/callback?next=/dashboard\`,
+        emailRedirectTo: `${window.location.origin}/api/auth/callback?next=/dashboard`,
       },
     });
 
     setLoading(false);
+
+    if (error) {
+      setError(error.message);
+      return;
+    }
+
     setSent(true);
   }
 
@@ -36,9 +44,11 @@ export default function Page() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-black text-white">
       <form onSubmit={handleSubmit}>
-        <input value={email} onChange={(e)=>setEmail(e.target.value)} required />
-        <button>{loading ? 'Sending...' : 'Send link'}</button>
+        <input value={email} onChange={(e) => setEmail(e.target.value)} required />
+        <button type="submit">{loading ? 'Sending...' : 'Send link'}</button>
+        {error ? <p>{error}</p> : null}
       </form>
+      <Link href="/pricing">See pricing</Link>
     </div>
   );
 }
