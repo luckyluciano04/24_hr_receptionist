@@ -1,80 +1,116 @@
-'use client';
+ 'use client';
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { createClient } from '../../lib/supabase/client';
-import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
+import { createClient } from '@/lib/supabase';
 
-export default function LoginPage() {
-  const router = useRouter();
+export default function Page() {
+  const supabase = createClient();
+
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  const [sent, setSent] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setIsLoading(true);
+    setLoading(true);
     setError('');
 
-    try {
-      const supabase = createClient();
-      const { error: authError } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
+    const { error } = await supabase.auth.signInWithOtp({
+      email,
+      options: {
+        emailRedirectTo: `${window.location.origin}/api/auth/callback?next=/dashboard`,
+      },
+    });
 
-      if (authError) throw authError;
-      router.push('/dashboard');
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to log in. Please try again.');
-    } finally {
-      setIsLoading(false);
+    setLoading(false);
+
+    if (error) {
+      setError(error.message);
+      return;
     }
+
+    setSent(true);
   }
 
-  return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-[#0A0A0A] px-4 py-12">
-      <div className="w-full max-w-md">
-        <Link href="/" className="mb-8 block text-center text-lg font-bold text-white">
-          24hr Receptionist
-        </Link>
-        <div className="rounded-2xl border border-white/10 bg-white/5 p-8">
-          <h1 className="mb-6 text-center text-2xl font-bold text-white">Sign in to your account</h1>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <Input
-                type="email"
-                placeholder="Email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
-            </div>
-            <div>
-              <Input
-                type="password"
-                placeholder="Password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
-            </div>
-            {error && (
-              <div className="text-sm text-red-400">{error}</div>
-            )}
-            <Button type="submit" disabled={isLoading} className="w-full">
-              {isLoading ? 'Signing in...' : 'Sign in'}
-            </Button>
-          </form>
-          <div className="mt-6 text-center">
-            <Link href="/signup" className="text-sm text-gray-400 hover:text-white">
-              Don&apos;t have an account? Sign up
+  if (sent) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-black text-white px-6">
+        <div className="max-w-md w-full rounded-2xl border border-white/10 bg-white/5 p-6">
+          <h1 className="text-3xl font-bold">Check your email</h1>
+          <p className="mt-3 text-white/70">
+            Your secure access link has been sent.
+          </p>
+          <p className="mt-2 text-sm text-white/50">
+            Opens instantly. No password required.
+          </p>
+
+          <div className="mt-6">
+            <Link
+              href="/pricing"
+              className="w-full block text-center rounded-xl bg-blue-600 px-4 py-3 font-semibold text-white"
+            >
+              View plans while you wait
             </Link>
           </div>
         </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-black text-white px-6">
+      <div className="max-w-md w-full rounded-2xl border border-white/10 bg-white/5 p-6">
+        <p className="text-sm text-white/50 uppercase tracking-wide">
+          24hrReceptionist.com
+        </p>
+
+        <h1 className="mt-2 text-3xl font-bold leading-tight">
+          Access your AI receptionist
+        </h1>
+
+        <p className="mt-2 text-white/70">
+          Every call answered. Every lead captured. Instantly.
+        </p>
+
+        <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+          <input
+            type="email"
+            placeholder="Enter your email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            className="w-full rounded-xl border border-white/10 bg-black/40 px-4 py-3 text-white outline-none"
+          />
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full rounded-xl bg-blue-600 hover:bg-blue-700 transition px-4 py-3 font-semibold text-white disabled:opacity-60"
+          >
+            {loading ? 'Sending secure link...' : 'Send secure access link'}
+          </button>
+        </form>
+
+        {error && (
+          <p className="mt-3 text-red-400 text-sm">
+            {error}
+          </p>
+        )}
+
+        <div className="mt-6 border-t border-white/10 pt-4">
+          <Link
+            href="/pricing"
+            className="w-full block text-center rounded-xl border border-white/15 px-4 py-3 font-medium text-white/85"
+          >
+            See pricing
+          </Link>
+        </div>
+
+        <p className="mt-4 text-xs text-white/40 text-center">
+          No password • Instant access • Enterprise-grade security
+        </p>
       </div>
     </div>
   );
