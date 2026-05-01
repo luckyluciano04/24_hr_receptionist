@@ -1,70 +1,34 @@
-import { redirect } from 'next/navigation';
-import { cookies } from 'next/headers';
-import { createServerClient } from '@supabase/ssr';
+import Link from "next/link";
 
-export default async function DashboardPage() {
-  const cookieStore = await cookies();
-
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return cookieStore.getAll();
-        },
-        setAll(cookiesToSet) {
-          try {
-            cookiesToSet.forEach(({ name, value, options }) => {
-              cookieStore.set(name, value, options);
-            });
-          } catch {
-            // no-op
-          }
-        },
-      },
-    }
-  );
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect('/login');
-  }
-
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('subscription_status, stripe_customer_id, stripe_subscription_id')
-    .eq('id', user.id)
-    .maybeSingle();
-
-  const isActive = profile?.subscription_status === 'active';
-
+export default function DashboardLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
-    <main className="min-h-screen bg-black px-6 py-16 text-white">
-      <section className="mx-auto max-w-5xl">
-        <p className="text-xs uppercase tracking-[0.35em] text-white/40">Dashboard</p>
-        <h1 className="mt-4 text-4xl font-black tracking-tight sm:text-5xl">
-          Welcome back.
-        </h1>
-        <p className="mt-4 text-lg text-white/65">{user.email}</p>
+    <div className="min-h-screen bg-white text-slate-950">
+      <header className="flex items-center justify-between border-b border-slate-200 px-6 py-4">
+        <Link href="/" className="text-sm font-medium text-slate-700 hover:text-slate-950">
+          ← Back to home
+        </Link>
 
-        <div className="mt-10 rounded-[1.8rem] border border-white/10 bg-white/5 p-6">
-          <p className="text-lg font-semibold">
-            {isActive
-              ? 'Your AI receptionist is live.'
-              : 'You are one step away from capturing every inbound call.'}
-          </p>
-
-          <p className="mt-2 text-white/65">
-            {isActive
-              ? 'Next step: connect your call flow, routing rules, and notifications.'
-              : 'Activate your system to start converting missed calls into booked revenue immediately.'}
-          </p>
+        <div className="flex items-center gap-4 text-sm">
+          <Link href="/pricing" className="text-slate-600 hover:text-slate-950">
+            Pricing
+          </Link>
+          <Link href="/dashboard" className="text-slate-600 hover:text-slate-950">
+            Dashboard
+          </Link>
+          <Link
+            href="/api/auth/logout"
+            className="rounded-full border border-slate-300 px-4 py-2 font-medium text-slate-800 hover:bg-slate-50"
+          >
+            Logout
+          </Link>
         </div>
-      </section>
-    </main>
+      </header>
+
+      <main>{children}</main>
+    </div>
   );
 }
