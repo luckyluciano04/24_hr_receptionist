@@ -24,5 +24,5 @@ export async function GET(req: Request) {
     cancel_url: `\${process.env.NEXT_PUBLIC_APP_URL}/pricing`,
   });
 
-  return NextResponse.redirect(session.url);
+  return NextResponse.redirect(session.url!);
 }
