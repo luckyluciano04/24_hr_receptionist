@@ -1,34 +1,43 @@
+import { stripe } from "@/lib/stripe";
+import { createServerClient } from "@supabase/ssr";
+import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
-import Stripe from "stripe";
-import { createSupabaseServerClient } from "@/lib/supabase-server";
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
 export async function GET() {
-  const supabase = await createSupabaseServerClient();
-  const { data } = await supabase.auth.getUser();
-  const user = data.user;
+  const cookieStore = await cookies();
 
-  if (!user?.email) {
-    return NextResponse.redirect(new URL("/signup", process.env.NEXT_PUBLIC_SITE_URL!), 302);
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    {
+      cookies: {
+        get: (name) => cookieStore.get(name)?.value,
+      },
+    }
+  );
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return new NextResponse("Unauthorized", { status: 401 });
   }
 
-  const existingCustomers = await stripe.customers.list({
-    email: user.email,
-    limit: 1,
-  });
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("stripe_customer_id")
+    .eq("id", user.id)
+    .single();
 
-  const customer =
-    existingCustomers.data[0] ??
-    (await stripe.customers.create({
-      email: user.email,
-      name: user.user_metadata?.full_name ?? undefined,
-    }));
+  if (!profile?.stripe_customer_id) {
+    return new NextResponse("No billing account", { status: 400 });
+  }
 
   const session = await stripe.billingPortal.sessions.create({
-    customer: customer.id,
-    return_url: `${process.env.NEXT_PUBLIC_SITE_URL}/dashboard`,
+    customer: profile.stripe_customer_id,
+    return_url: \`\${process.env.NEXT_PUBLIC_APP_URL}/dashboard\`,
   });
 
-  return NextResponse.redirect(session.url, 302);
+  return NextResponse.redirect(session.url);
 }

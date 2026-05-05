@@ -1,48 +1,36 @@
-import Stripe from 'stripe';
-import { createAdminClient } from '@/lib/supabaseAdmin';
-import { requireEnv } from '@/lib/env';
+import { stripe } from "@/lib/stripe";
+import { headers } from "next/headers";
+import { NextResponse } from "next/server";
+import { createClient } from "@supabase/supabase-js";
 
-export const runtime = 'nodejs';
+export async function POST(req: Request) {
+  const body = await req.text();
+  const sig = headers().get("stripe-signature")!;
 
-export async function POST(request: Request) {
-  const sig = request.headers.get('stripe-signature');
-
-  if (!sig) {
-    return new Response('Missing Stripe signature', { status: 400 });
-  }
-
-  const body = await request.text();
-  const stripe = new Stripe(requireEnv('STRIPE_SECRET_KEY'));
-
-  let event: Stripe.Event;
+  let event;
 
   try {
     event = stripe.webhooks.constructEvent(
       body,
       sig,
-      requireEnv('STRIPE_WEBHOOK_SECRET')
+      process.env.STRIPE_WEBHOOK_SECRET!
     );
   } catch (err) {
-    const message = err instanceof Error ? err.message : 'Invalid webhook';
-    return new Response(`Webhook Error: ${message}`, { status: 400 });
+    return new NextResponse("Webhook error", { status: 400 });
   }
 
-  const supabase = createAdminClient();
+  if (event.type === "checkout.session.completed") {
+    const session: any = event.data.object;
 
-  if (event.type === 'checkout.session.completed') {
-    const session = event.data.object as Stripe.Checkout.Session;
-    const email = session.customer_details?.email ?? session.customer_email;
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
 
-    if (email) {
-      await supabase
-        .from('profiles')
-        .update({
-          subscription_status: 'active',
-          updated_at: new Date().toISOString(),
-        })
-        .eq('email', email);
-    }
+    await supabase.from("profiles").update({
+      stripe_customer_id: session.customer,
+    }).eq("email", session.customer_details.email);
   }
 
-  return Response.json({ received: true });
+  return new NextResponse("ok");
 }
