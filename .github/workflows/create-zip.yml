@@ -1,0 +1,31 @@
+name: Create Repository Zip
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  zip:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Create zip archive
+        run: |
+          zip -r 24_hr_receptionist.zip . \
+            --exclude "*.git*" \
+            --exclude "node_modules/**" \
+            --exclude ".next/**" \
+            --exclude "coverage/**"
+
+      - name: Upload zip artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: 24_hr_receptionist
+          path: 24_hr_receptionist.zip
+          retention-days: 90
