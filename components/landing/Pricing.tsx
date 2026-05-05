@@ -6,74 +6,78 @@ import { Card } from '@/components/ui/Card';
 import { TIER_PRICES, TIER_FEATURES } from '@/lib/constants';
 import type { Tier } from '@/lib/constants';
 
-const tiers: { id: Tier; name: string; popular?: boolean }[] = [
-  { id: 'starter', name: 'Starter' },
-  { id: 'professional', name: 'Professional', popular: true },
-  { id: 'enterprise', name: 'Enterprise' },
+const tiers: { id: Tier; name: string; popular?: boolean; blurb: string }[] = [
+  { id: 'starter', name: 'Starter', blurb: 'For solo operators validating the workflow.' },
+  { id: 'professional', name: 'Professional', popular: true, blurb: 'For teams that need real revenue capture.' },
+  { id: 'enterprise', name: 'Enterprise', blurb: 'For multi-location operators with higher volume.' },
 ];
 
 export function Pricing() {
   return (
-    <section id="pricing" className="px-4 py-24">
-      <div className="mx-auto max-w-5xl">
-        <div className="mb-16 text-center">
-          <h2 className="mb-4 text-3xl font-bold text-white sm:text-4xl">
-            Simple, Transparent Pricing
+    <section id="pricing" className="relative px-4 py-24">
+      <div className="mx-auto max-w-6xl">
+        <div className="mb-12 text-center">
+          <div className="mb-4 inline-flex rounded-full border border-slate-200 bg-white/80 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-slate-600">
+            Pricing
+          </div>
+          <h2 className="mb-4 text-3xl font-bold text-slate-950 sm:text-5xl">
+            One workflow. Three clear tiers.
           </h2>
-          <p className="mx-auto max-w-xl text-gray-400">
-            Start your 7-day free trial today. No credit card required.
+          <p className="mx-auto max-w-2xl text-base leading-7 text-slate-600 sm:text-lg">
+            Pick the level of call volume, automation, and support you need. Every tier is designed to convert missed calls into booked revenue.
           </p>
         </div>
 
-        <div className="grid gap-8 md:grid-cols-3">
+        <div className="grid gap-6 lg:grid-cols-3">
           {tiers.map((tier) => (
             <Card
               key={tier.id}
               variant={tier.popular ? 'highlight' : 'default'}
-              className="relative flex flex-col"
+              className={`relative flex h-full flex-col overflow-hidden border border-slate-200 bg-white shadow-sm ${tier.popular ? 'ring-2 ring-slate-950' : ''}`}
             >
               {tier.popular && (
-                <div className="absolute -top-3.5 left-1/2 -translate-x-1/2">
-                  <span className="rounded-full bg-blue-600 px-4 py-1 text-xs font-bold uppercase tracking-wide text-white">
-                    Most Popular
-                  </span>
+                <div className="absolute right-4 top-4 rounded-full bg-slate-950 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-white">
+                  Most Popular
                 </div>
               )}
-              <div className="mb-6">
-                <h3 className="mb-2 text-xl font-bold text-white">{tier.name}</h3>
-                <div className="flex items-baseline gap-1">
-                  <span className="text-4xl font-bold text-white">
+
+              <div className="p-8">
+                <div className="mb-2 text-sm font-semibold uppercase tracking-[0.2em] text-slate-500">
+                  {tier.name}
+                </div>
+                <h3 className="text-2xl font-semibold tracking-tight text-slate-950">
+                  {tier.blurb}
+                </h3>
+
+                <div className="mt-6 flex items-end gap-1">
+                  <span className="text-5xl font-bold tracking-tight text-slate-950">
                     ${TIER_PRICES[tier.id]}
                   </span>
-                  <span className="text-gray-400">/month</span>
+                  <span className="pb-1 text-sm text-slate-500">/month</span>
                 </div>
+
+                <ul className="mt-8 space-y-3">
+                  {TIER_FEATURES[tier.id].map((feature) => (
+                    <li key={feature} className="flex items-start gap-3 text-sm leading-6 text-slate-700">
+                      <span className="mt-1 inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-slate-950 text-[11px] font-bold text-white">
+                        ✓
+                      </span>
+                      <span>{feature}</span>
+                    </li>
+                  ))}
+                </ul>
               </div>
-              <ul className="mb-8 flex-1 space-y-3">
-                {TIER_FEATURES[tier.id].map((feature) => (
-                  <li key={feature} className="flex items-start gap-2 text-gray-300">
-                    <svg
-                      className="mt-0.5 h-5 w-5 flex-shrink-0 text-blue-500"
-                      fill="currentColor"
-                      viewBox="0 0 20 20"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                    {feature}
-                  </li>
-                ))}
-              </ul>
-              <Link href={`/signup?plan=${tier.id}`} className="mt-auto">
-                <Button
-                  variant={tier.popular ? 'primary' : 'outline'}
-                  className="w-full"
-                >
-                  Get Started
-                </Button>
-              </Link>
+
+              <div className="mt-auto border-t border-slate-200 bg-slate-50 p-6">
+                <Link href={`/signup?plan=${tier.id}`} className="block">
+                  <Button
+                    variant={tier.popular ? 'primary' : 'outline'}
+                    className="w-full"
+                  >
+                    Get started with {tier.name}
+                  </Button>
+                </Link>
+              </div>
             </Card>
           ))}
         </div>
