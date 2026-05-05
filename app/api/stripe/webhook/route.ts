@@ -15,12 +15,12 @@ export async function POST(req: Request) {
       sig,
       process.env.STRIPE_WEBHOOK_SECRET!
     );
-  } catch (err) {
+  } catch ( _err ) {
     return new NextResponse("Webhook error", { status: 400 });
   }
 
   if (event.type === "checkout.session.completed") {
-    const session: any = event.data.object;
+    const session: unknown = event.data.object;
 
     const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
