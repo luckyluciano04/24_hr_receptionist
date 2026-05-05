@@ -22,8 +22,8 @@ export default async function DashboardPage() {
 
   if (!user) {
     return (
-      <main className="min-h-screen bg-slate-50 px-6 py-20">
-        <div className="mx-auto max-w-md rounded-3xl border border-slate-200 bg-white p-8 text-center shadow-sm">
+      <main className="min-h-screen bg-slate-50 px-4 sm:px-6 py-20">
+        <div className="mx-auto max-w-md rounded-3xl border border-slate-200 bg-white p-8 text-center shadow-sm max-w-full">
           <div className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-500">
             Access required
           </div>
@@ -35,7 +35,7 @@ export default async function DashboardPage() {
           </p>
           <Link
             href="/signup"
-            className="mt-8 inline-flex rounded-full bg-slate-950 px-6 py-3 text-sm font-semibold text-white hover:bg-slate-800"
+            className="mt-8 inline-flex rounded-full bg-slate-950 px-4 sm:px-6 py-3 text-sm font-semibold text-white hover:bg-slate-800"
           >
             Sign in
           </Link>
@@ -48,7 +48,7 @@ export default async function DashboardPage() {
   const initials = email.slice(0, 2).toUpperCase();
 
   return (
-    <main className="min-h-screen bg-slate-50 px-6 py-8 text-slate-950">
+    <main className="min-h-screen bg-slate-50 px-4 sm:px-6 py-8 text-slate-950">
       <section className="mx-auto max-w-7xl">
         <div className="grid gap-6 lg:grid-cols-[1.6fr_1fr]">
           <div className="premium-surface p-8">

@@ -1,9 +1,9 @@
 export default function DashboardPreview() {
   return (
-    <section className="py-24 px-6 bg-gradient-to-b from-black to-zinc-950">
-      <div className="max-w-7xl mx-auto">
+    <section className="py-24 px-4 sm:px-6 bg-gradient-to-b from-black to-zinc-950">
+      <div className="container-shell">
         <div className="mb-10">
-          <h2 className="text-5xl font-bold text-white mb-4">
+          <h2 className="text-4xl sm:text-5xl lg:text-4xl sm:text-5xl lg:text-6xl font-bold text-white mb-4">
             Operational Intelligence Dashboard
           </h2>
           <p className="text-zinc-400 text-lg max-w-2xl">
@@ -12,7 +12,7 @@ export default function DashboardPreview() {
           </p>
         </div>
 
-        <div className="rounded-3xl border border-white/10 bg-zinc-900/70 backdrop-blur-xl p-8 shadow-2xl">
+        <div className="rounded-3xl border border-white/10 bg-zinc-900/70 backdrop-blur-xl p-8 shadow-2xl max-w-full">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
             {[
               ["Calls Answered","4,281"],

@@ -212,7 +212,7 @@ export default function OnboardingPage() {
 
           {step === 4 && (
             <div className="space-y-6 text-center">
-              <div className="text-6xl">🎉</div>
+              <div className="text-4xl sm:text-5xl lg:text-6xl">🎉</div>
               <h2 className="text-2xl font-bold text-white">You&apos;re Live!</h2>
               <p className="text-gray-400">
                 Your AI receptionist is now active. Every call to your business number will be

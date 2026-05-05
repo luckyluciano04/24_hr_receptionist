@@ -20,7 +20,7 @@ export function Pricing() {
           <div className="mb-4 inline-flex rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
             Pricing
           </div>
-          <h2 className="text-3xl font-bold text-slate-950 sm:text-5xl">
+          <h2 className="text-3xl font-bold text-slate-950 sm:text-4xl sm:text-5xl lg:text-4xl sm:text-5xl lg:text-6xl">
             Enterprise-grade call capture for every stage.
           </h2>
           <p className="mx-auto mt-4 max-w-3xl text-base leading-7 text-slate-600 sm:text-lg">
@@ -50,7 +50,7 @@ export function Pricing() {
                 </h3>
 
                 <div className="mt-6 flex items-end gap-1">
-                  <span className="text-5xl font-bold tracking-tight text-slate-950">
+                  <span className="text-4xl sm:text-5xl lg:text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-slate-950">
                     ${TIER_PRICES[tier.id]}
                   </span>
                   <span className="pb-1 text-sm text-slate-500">/month</span>

@@ -42,11 +42,11 @@ export default function PricingUpgrade() {
   ]
 
   return (
-    <section className="py-24 px-6 bg-black">
-      <div className="max-w-7xl mx-auto">
+    <section className="py-24 px-4 sm:px-6 bg-black">
+      <div className="container-shell">
         <div className="flex justify-between items-center mb-12">
           <div>
-            <h2 className="text-5xl font-bold text-white">
+            <h2 className="text-4xl sm:text-5xl lg:text-4xl sm:text-5xl lg:text-6xl font-bold text-white">
               Pricing
             </h2>
             <p className="text-zinc-400 mt-3">
@@ -64,10 +64,10 @@ export default function PricingUpgrade() {
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {tiers.map((tier)=>(
-            <div key={tier.name} className="rounded-3xl border border-white/10 bg-zinc-900/60 p-8">
+            <div key={tier.name} className="rounded-3xl border border-white/10 bg-zinc-900/60 p-8 max-w-full">
               <h3 className="text-3xl font-bold text-white">{tier.name}</h3>
 
-              <div className="mt-6 text-6xl font-black text-white">
+              <div className="mt-6 text-4xl sm:text-5xl lg:text-6xl font-black text-white">
                 ${annual ? tier.annual : tier.monthly}
               </div>
 

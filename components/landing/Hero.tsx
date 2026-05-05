@@ -16,7 +16,7 @@ export function Hero() {
           🎉 7-day free trial · No credit card required
         </div>
 
-        <h1 className="mb-6 text-4xl font-bold leading-tight tracking-tight text-white sm:text-5xl md:text-6xl">
+        <h1 className="mb-6 text-4xl font-bold leading-tight tracking-tight text-white sm:text-4xl sm:text-5xl lg:text-4xl sm:text-5xl lg:text-6xl md:text-4xl sm:text-5xl lg:text-6xl">
           Your Business Never{' '}
           <span className="bg-gradient-to-r from-blue-400 to-blue-600 bg-clip-text text-transparent">
             Misses Another Call

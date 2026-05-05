@@ -41,7 +41,7 @@ export default function HomePage() {
     <main className="relative overflow-hidden bg-slate-50 text-slate-950">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(15,23,42,0.08),transparent_25%),radial-gradient(circle_at_left,rgba(59,130,246,0.08),transparent_22%)]" />
       <section className="page-shell relative py-6">
-        <div className="premium-surface flex items-center justify-between px-6 py-4">
+        <div className="premium-surface flex items-center justify-between px-4 sm:px-6 py-4">
           <div>
             <div className="text-sm font-semibold tracking-wide text-slate-600">
               24hrReceptionist.com
@@ -71,7 +71,7 @@ export default function HomePage() {
             <div className="mb-4 inline-flex rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold uppercase tracking-wider text-slate-600 shadow-sm">
               Never miss another call
             </div>
-            <h1 className="max-w-xl text-5xl font-semibold leading-tight tracking-tight text-slate-950 sm:text-6xl">
+            <h1 className="max-w-xl text-4xl sm:text-5xl lg:text-4xl sm:text-5xl lg:text-6xl font-semibold leading-tight tracking-tight text-slate-950 sm:text-4xl sm:text-5xl lg:text-6xl">
               Turn every missed call into booked revenue.
             </h1>
             <p className="mt-6 max-w-xl text-lg leading-8 text-slate-600">
@@ -81,13 +81,13 @@ export default function HomePage() {
             <div className="mt-8 flex flex-wrap gap-3">
               <Link
                 href="/signup"
-                className="rounded-full bg-slate-950 px-6 py-3 text-sm font-semibold text-white shadow-[0_18px_50px_-18px_rgba(15,23,42,0.55)] hover:bg-slate-800"
+                className="rounded-full bg-slate-950 px-4 sm:px-6 py-3 text-sm font-semibold text-white shadow-[0_18px_50px_-18px_rgba(15,23,42,0.55)] hover:bg-slate-800"
               >
                 Activate AI Receptionist
               </Link>
               <Link
                 href="/pricing"
-                className="rounded-full border border-slate-300 bg-white px-6 py-3 text-sm font-semibold text-slate-800 shadow-sm hover:bg-slate-50"
+                className="rounded-full border border-slate-300 bg-white px-4 sm:px-6 py-3 text-sm font-semibold text-slate-800 shadow-sm hover:bg-slate-50"
               >
                 See pricing
               </Link>
@@ -168,13 +168,13 @@ export default function HomePage() {
             <div className="mt-6 flex flex-wrap gap-3">
               <Link
                 href="/signup"
-                className="rounded-full bg-white px-6 py-3 text-sm font-semibold text-slate-950 hover:bg-slate-100"
+                className="rounded-full bg-white px-4 sm:px-6 py-3 text-sm font-semibold text-slate-950 hover:bg-slate-100"
               >
                 Activate AI Receptionist
               </Link>
               <Link
                 href="/pricing"
-                className="rounded-full border border-white/15 px-6 py-3 text-sm font-semibold text-white hover:bg-white/10"
+                className="rounded-full border border-white/15 px-4 sm:px-6 py-3 text-sm font-semibold text-white hover:bg-white/10"
               >
                 View pricing
               </Link>

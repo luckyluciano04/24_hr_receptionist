@@ -11,9 +11,9 @@ const faqs = [
 
 export default function ExpandedFAQ() {
   return (
-    <section className="py-24 px-6 bg-zinc-950">
-      <div className="max-w-5xl mx-auto">
-        <h2 className="text-5xl font-bold text-white mb-12">
+    <section className="py-24 px-4 sm:px-6 bg-zinc-950">
+      <div className="container-shell">
+        <h2 className="text-4xl sm:text-5xl lg:text-4xl sm:text-5xl lg:text-6xl font-bold text-white mb-12">
           Frequently Asked Questions
         </h2>
 

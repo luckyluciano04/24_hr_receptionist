@@ -10,11 +10,11 @@ const plans: { id: Tier; name: string; featured?: boolean }[] = [
 
 export default function Page() {
   return (
-    <main className="min-h-screen bg-slate-50 px-6 py-16 text-slate-950">
+    <main className="min-h-screen bg-slate-50 px-4 sm:px-6 py-16 text-slate-950">
       <section className="mx-auto max-w-7xl">
         <div className="mx-auto mb-12 max-w-3xl text-center">
           <div className="section-label mx-auto">Pricing</div>
-          <h1 className="mt-4 text-4xl font-semibold tracking-tight sm:text-5xl">
+          <h1 className="mt-4 text-4xl font-semibold tracking-tight sm:text-4xl sm:text-5xl lg:text-4xl sm:text-5xl lg:text-6xl">
             Choose the plan that matches your call volume.
           </h1>
           <p className="mt-4 text-lg leading-8 text-slate-600">
@@ -40,7 +40,7 @@ export default function Page() {
                   {plan.name}
                 </div>
                 <div className="mt-3 flex items-end gap-1">
-                  <span className="text-5xl font-bold tracking-tight text-slate-950">
+                  <span className="text-4xl sm:text-5xl lg:text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-slate-950">
                     ${TIER_PRICES[plan.id]}
                   </span>
                   <span className="pb-1 text-sm text-slate-500">/month</span>
