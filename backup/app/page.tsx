@@ -1,9 +1,3 @@
-
-import TrustBar from "@/components/enterprise/TrustBar"
-import DashboardPreview from "@/components/enterprise/DashboardPreview"
-import ROICalculator from "@/components/enterprise/ROICalculator"
-import ExpandedFAQ from "@/components/enterprise/ExpandedFAQ"
-import PricingUpgrade from "@/components/enterprise/PricingUpgrade"
 import Link from "next/link";
 
 const features = [
@@ -182,13 +176,6 @@ export default function HomePage() {
           </div>
         </section>
       </section>
-    
-    <TrustBar />
-    <DashboardPreview />
-    <ROICalculator />
-    <PricingUpgrade />
-    <ExpandedFAQ />
     </main>
-    
   );
 }
