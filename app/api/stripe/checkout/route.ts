@@ -20,8 +20,8 @@ export async function GET(req: Request) {
   const session = await stripe.checkout.sessions.create({
     mode: "subscription",
     line_items: [{ price: priceId, quantity: 1 }],
-    success_url: \`\${process.env.NEXT_PUBLIC_APP_URL}/dashboard\`,
-    cancel_url: \`\${process.env.NEXT_PUBLIC_APP_URL}/pricing\`,
+    success_url: `\${process.env.NEXT_PUBLIC_APP_URL}/dashboard`,
+    cancel_url: `\${process.env.NEXT_PUBLIC_APP_URL}/pricing`,
   });
 
   return NextResponse.redirect(session.url);
