@@ -6,25 +6,25 @@ import { Card } from '@/components/ui/Card';
 import { TIER_PRICES, TIER_FEATURES } from '@/lib/constants';
 import type { Tier } from '@/lib/constants';
 
-const tiers: { id: Tier; name: string; popular?: boolean; blurb: string }[] = [
-  { id: 'starter', name: 'Starter', blurb: 'For solo operators validating the workflow.' },
-  { id: 'professional', name: 'Professional', popular: true, blurb: 'For teams that need real revenue capture.' },
-  { id: 'enterprise', name: 'Enterprise', blurb: 'For multi-location operators with higher volume.' },
+const tiers: { id: Tier; name: string; blurb: string; popular?: boolean }[] = [
+  { id: 'starter', name: 'Starter', blurb: 'For solo operators validating live capture.' },
+  { id: 'professional', name: 'Professional', blurb: 'For teams converting missed calls into revenue.', popular: true },
+  { id: 'enterprise', name: 'Enterprise', blurb: 'For multi-location operations and higher volume.' },
 ];
 
 export function Pricing() {
   return (
-    <section id="pricing" className="relative px-4 py-24">
-      <div className="mx-auto max-w-6xl">
+    <section id="pricing" className="px-4 py-24">
+      <div className="mx-auto max-w-7xl">
         <div className="mb-12 text-center">
-          <div className="mb-4 inline-flex rounded-full border border-slate-200 bg-white/80 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-slate-600">
+          <div className="mb-4 inline-flex rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
             Pricing
           </div>
-          <h2 className="mb-4 text-3xl font-bold text-slate-950 sm:text-5xl">
-            One workflow. Three clear tiers.
+          <h2 className="text-3xl font-bold text-slate-950 sm:text-5xl">
+            Enterprise-grade call capture for every stage.
           </h2>
-          <p className="mx-auto max-w-2xl text-base leading-7 text-slate-600 sm:text-lg">
-            Pick the level of call volume, automation, and support you need. Every tier is designed to convert missed calls into booked revenue.
+          <p className="mx-auto mt-4 max-w-3xl text-base leading-7 text-slate-600 sm:text-lg">
+            Every plan includes 24/7 answering, lead qualification, transcripts, and access to the account dashboard.
           </p>
         </div>
 
@@ -42,10 +42,10 @@ export function Pricing() {
               )}
 
               <div className="p-8">
-                <div className="mb-2 text-sm font-semibold uppercase tracking-[0.2em] text-slate-500">
+                <div className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-500">
                   {tier.name}
                 </div>
-                <h3 className="text-2xl font-semibold tracking-tight text-slate-950">
+                <h3 className="mt-2 text-2xl font-semibold tracking-tight text-slate-950">
                   {tier.blurb}
                 </h3>
 
@@ -69,12 +69,9 @@ export function Pricing() {
               </div>
 
               <div className="mt-auto border-t border-slate-200 bg-slate-50 p-6">
-                <Link href={`/signup?plan=${tier.id}`} className="block">
-                  <Button
-                    variant={tier.popular ? 'primary' : 'outline'}
-                    className="w-full"
-                  >
-                    Get started with {tier.name}
+                <Link href={`/api/stripe/checkout?plan=${tier.id}`} className="block">
+                  <Button variant={tier.popular ? 'primary' : 'outline'} className="w-full">
+                    Start {tier.name}
                   </Button>
                 </Link>
               </div>

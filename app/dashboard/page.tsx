@@ -1,25 +1,18 @@
 import Link from "next/link";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
 
-const metrics = [
-  { label: "Answered calls", value: "24/7" },
-  { label: "Leads captured", value: "Auto" },
-  { label: "Billing status", value: "Ready" },
+const outcomes = [
+  { label: "24/7 Answering", value: "Never miss the call" },
+  { label: "Lead Capture", value: "Name, intent, routing" },
+  { label: "Follow-Up", value: "Auto handoff and next step" },
+  { label: "Transcripts", value: "Call summary and context" },
 ];
 
-const actions = [
-  {
-    title: "Manage subscription",
-    body: "Open the billing portal to update payment details, switch plans, or review invoices.",
-  },
-  {
-    title: "Review plan options",
-    body: "Compare tiers and move up when call volume or automation needs increase.",
-  },
-  {
-    title: "Monitor operational setup",
-    body: "Use this dashboard as the control center for auth, billing, and delivery status.",
-  },
+const controls = [
+  "Manage subscription and billing",
+  "Review captured leads and call outcomes",
+  "Monitor delivery status and account health",
+  "Move between plans as volume changes",
 ];
 
 export default async function DashboardPage() {
@@ -38,7 +31,7 @@ export default async function DashboardPage() {
             Sign in to access the dashboard
           </h1>
           <p className="mt-3 text-slate-600">
-            The dashboard is your control center for billing, subscription status, and operational setup.
+            This is the customer control center for billing, outcomes, and subscription management.
           </p>
           <Link
             href="/signup"
@@ -56,7 +49,7 @@ export default async function DashboardPage() {
 
   return (
     <main className="min-h-screen bg-slate-50 px-6 py-8 text-slate-950">
-      <section className="mx-auto max-w-6xl">
+      <section className="mx-auto max-w-7xl">
         <div className="grid gap-6 lg:grid-cols-[1.6fr_1fr]">
           <div className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
             <div className="flex items-center gap-4">
@@ -72,11 +65,11 @@ export default async function DashboardPage() {
               </div>
             </div>
 
-            <div className="mt-8 grid gap-4 sm:grid-cols-3">
-              {metrics.map((metric) => (
-                <div key={metric.label} className="rounded-2xl border border-slate-200 bg-slate-50 p-5">
-                  <div className="text-sm text-slate-500">{metric.label}</div>
-                  <div className="mt-2 text-xl font-semibold text-slate-950">{metric.value}</div>
+            <div className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+              {outcomes.map((item) => (
+                <div key={item.label} className="rounded-2xl border border-slate-200 bg-slate-50 p-5">
+                  <div className="text-sm text-slate-500">{item.label}</div>
+                  <div className="mt-2 text-lg font-semibold text-slate-950">{item.value}</div>
                 </div>
               ))}
             </div>
@@ -91,12 +84,11 @@ export default async function DashboardPage() {
             </div>
 
             <div className="mt-10 rounded-3xl border border-slate-200 bg-slate-50 p-6">
-              <h2 className="text-xl font-semibold">What this dashboard does</h2>
-              <div className="mt-5 grid gap-4 md:grid-cols-3">
-                {actions.map((item) => (
-                  <div key={item.title} className="rounded-2xl border border-slate-200 bg-white p-5">
-                    <h3 className="text-base font-semibold">{item.title}</h3>
-                    <p className="mt-2 text-sm leading-6 text-slate-600">{item.body}</p>
+              <h2 className="text-xl font-semibold">What the customer gets</h2>
+              <div className="mt-5 grid gap-4 md:grid-cols-2">
+                {controls.map((item) => (
+                  <div key={item} className="rounded-2xl border border-slate-200 bg-white p-5 text-sm text-slate-700">
+                    {item}
                   </div>
                 ))}
               </div>
@@ -105,12 +97,12 @@ export default async function DashboardPage() {
 
           <aside className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
             <div className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-500">
-              Operational checklist
+              Account status
             </div>
-            <h2 className="mt-3 text-2xl font-semibold tracking-tight">Revenue activation status</h2>
+            <h2 className="mt-3 text-2xl font-semibold tracking-tight">Revenue control center</h2>
             <div className="mt-6 space-y-4">
               <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">Auth: connected</div>
-              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">Pricing: visible</div>
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">Pricing: live</div>
               <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">Checkout: wired</div>
               <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">Webhook sync: next</div>
             </div>
