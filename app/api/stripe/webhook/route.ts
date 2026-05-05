@@ -29,8 +29,8 @@ export async function POST(req: Request) {
     );
 
     await supabase.from("profiles").update({
-      stripe_customer_id: session.customer,
-    }).eq("email", session.customer_details.email);
+      stripe_customer_id: (session as any).customer,
+    }).eq("email", (session as any).customer_details.email);
   }
 
   return new NextResponse("ok");
