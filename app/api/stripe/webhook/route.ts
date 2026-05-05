@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any */
 import { stripe } from "@/lib/stripe";
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";

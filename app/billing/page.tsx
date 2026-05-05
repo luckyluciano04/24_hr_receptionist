@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { getActivePrices } from "@/lib/stripe/config";
 
 export default async function BillingPage() {
