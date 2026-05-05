@@ -32,9 +32,10 @@ const steps = [
 
 export default function HomePage() {
   return (
-    <main className="min-h-screen bg-white text-slate-950">
-      <section className="mx-auto max-w-6xl px-6 py-6">
-        <div className="flex items-center justify-between border-b border-slate-200 pb-4">
+    <main className="relative overflow-hidden bg-slate-50 text-slate-950">
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(15,23,42,0.08),transparent_25%),radial-gradient(circle_at_left,rgba(59,130,246,0.08),transparent_22%)]" />
+      <section className="page-shell relative py-6">
+        <div className="premium-surface flex items-center justify-between px-6 py-4">
           <div>
             <div className="text-sm font-semibold tracking-wide text-slate-600">
               24hrReceptionist.com
@@ -46,22 +47,22 @@ export default function HomePage() {
           <div className="flex items-center gap-3">
             <Link
               href="/pricing"
-              className="rounded-full border border-slate-300 px-4 py-2 text-sm font-medium text-slate-800 hover:bg-slate-50"
+              className="rounded-full border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-800 shadow-sm hover:bg-slate-50"
             >
               Pricing
             </Link>
             <Link
               href="/signup"
-              className="rounded-full bg-slate-950 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800"
+              className="rounded-full bg-slate-950 px-4 py-2 text-sm font-medium text-white shadow-[0_18px_50px_-18px_rgba(15,23,42,0.55)] hover:bg-slate-800"
             >
               Activate AI Receptionist
             </Link>
           </div>
         </div>
 
-        <div className="grid gap-16 py-16 lg:grid-cols-2 lg:items-center">
-          <div>
-            <div className="mb-4 inline-flex rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-slate-600">
+        <div className="grid gap-12 py-16 lg:grid-cols-2 lg:items-center lg:py-20">
+          <div className="relative">
+            <div className="mb-4 inline-flex rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold uppercase tracking-wider text-slate-600 shadow-sm">
               Never miss another call
             </div>
             <h1 className="max-w-xl text-5xl font-semibold leading-tight tracking-tight text-slate-950 sm:text-6xl">
@@ -74,41 +75,41 @@ export default function HomePage() {
             <div className="mt-8 flex flex-wrap gap-3">
               <Link
                 href="/signup"
-                className="rounded-full bg-slate-950 px-6 py-3 text-sm font-semibold text-white hover:bg-slate-800"
+                className="rounded-full bg-slate-950 px-6 py-3 text-sm font-semibold text-white shadow-[0_18px_50px_-18px_rgba(15,23,42,0.55)] hover:bg-slate-800"
               >
                 Activate AI Receptionist
               </Link>
               <Link
                 href="/pricing"
-                className="rounded-full border border-slate-300 px-6 py-3 text-sm font-semibold text-slate-800 hover:bg-slate-50"
+                className="rounded-full border border-slate-300 bg-white px-6 py-3 text-sm font-semibold text-slate-800 shadow-sm hover:bg-slate-50"
               >
                 See pricing
               </Link>
             </div>
 
             <div className="mt-6 flex flex-wrap gap-4 text-sm text-slate-600">
-              <div>Answers 24/7</div>
-              <div>Captures every lead</div>
-              <div>Setup in minutes</div>
+              <div className="rounded-full border border-slate-200 bg-white px-4 py-2 shadow-sm">Answers 24/7</div>
+              <div className="rounded-full border border-slate-200 bg-white px-4 py-2 shadow-sm">Captures every lead</div>
+              <div className="rounded-full border border-slate-200 bg-white px-4 py-2 shadow-sm">Setup in minutes</div>
             </div>
           </div>
 
-          <div className="rounded-3xl border border-slate-200 bg-slate-50 p-6 shadow-sm">
-            <div className="rounded-2xl bg-white p-6">
-              <div className="text-sm font-semibold text-slate-500">Live workflow</div>
+          <div className="premium-surface p-6">
+            <div className="rounded-[1.5rem] bg-slate-950 p-6 text-white shadow-[0_30px_80px_-36px_rgba(15,23,42,0.75)]">
+              <div className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-300">Live workflow</div>
               <div className="mt-4 space-y-4">
-                <div className="rounded-2xl border border-slate-200 p-4">
-                  <div className="text-sm font-medium text-slate-500">Incoming call</div>
+                <div className="rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur">
+                  <div className="text-sm font-medium text-slate-300">Incoming call</div>
                   <div className="mt-1 text-base font-semibold">“Hi, I need help today.”</div>
                 </div>
-                <div className="rounded-2xl border border-slate-200 p-4">
-                  <div className="text-sm font-medium text-slate-500">AI response</div>
+                <div className="rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur">
+                  <div className="text-sm font-medium text-slate-300">AI response</div>
                   <div className="mt-1 text-base font-semibold">
                     Answers instantly, qualifies need, and captures contact details.
                   </div>
                 </div>
-                <div className="rounded-2xl border border-slate-200 p-4">
-                  <div className="text-sm font-medium text-slate-500">Outcome</div>
+                <div className="rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur">
+                  <div className="text-sm font-medium text-slate-300">Outcome</div>
                   <div className="mt-1 text-base font-semibold">
                     Lead routed, booked, and ready for follow-up.
                   </div>
@@ -118,11 +119,11 @@ export default function HomePage() {
           </div>
         </div>
 
-        <section className="py-8">
+        <section className="py-6">
           <div className="grid gap-4 md:grid-cols-3">
             {features.map((item) => (
-              <div key={item.title} className="rounded-2xl border border-slate-200 p-6">
-                <h2 className="text-lg font-semibold">{item.title}</h2>
+              <div key={item.title} className="premium-surface p-6">
+                <h2 className="text-lg font-semibold text-slate-950">{item.title}</h2>
                 <p className="mt-2 text-sm leading-6 text-slate-600">{item.body}</p>
               </div>
             ))}
@@ -131,7 +132,7 @@ export default function HomePage() {
 
         <section className="py-16">
           <div className="max-w-2xl">
-            <h2 className="text-3xl font-semibold tracking-tight">How it works</h2>
+            <h2 className="text-3xl font-semibold tracking-tight text-slate-950">How it works</h2>
             <p className="mt-3 text-slate-600">
               Minimal setup. Fast deployment. Built to reduce missed opportunities.
             </p>
@@ -139,9 +140,9 @@ export default function HomePage() {
 
           <div className="mt-8 grid gap-4 md:grid-cols-3">
             {steps.map((step, index) => (
-              <div key={step.title} className="rounded-2xl border border-slate-200 p-6">
+              <div key={step.title} className="premium-surface p-6">
                 <div className="text-sm font-semibold text-slate-500">0{index + 1}</div>
-                <h3 className="mt-2 text-lg font-semibold">{step.title}</h3>
+                <h3 className="mt-2 text-lg font-semibold text-slate-950">{step.title}</h3>
                 <p className="mt-2 text-sm leading-6 text-slate-600">{step.body}</p>
               </div>
             ))}
@@ -149,7 +150,7 @@ export default function HomePage() {
         </section>
 
         <section className="py-8">
-          <div className="rounded-3xl bg-slate-950 px-8 py-10 text-white">
+          <div className="rounded-[2rem] bg-slate-950 px-8 py-10 text-white shadow-[0_30px_80px_-35px_rgba(15,23,42,0.8)]">
             <div className="max-w-2xl">
               <h2 className="text-3xl font-semibold tracking-tight">
                 Start capturing calls now.
@@ -167,7 +168,7 @@ export default function HomePage() {
               </Link>
               <Link
                 href="/pricing"
-                className="rounded-full border border-slate-700 px-6 py-3 text-sm font-semibold text-white hover:bg-slate-900"
+                className="rounded-full border border-white/15 px-6 py-3 text-sm font-semibold text-white hover:bg-white/10"
               >
                 View pricing
               </Link>

@@ -32,8 +32,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark">
-      <body className={`${geistSans.variable} antialiased bg-[#0A0A0A] text-white`}>
+    <html lang="en" className="scroll-smooth">
+      <body className={`${geistSans.variable} bg-slate-50 text-slate-950 antialiased`}>
         {children}
       </body>
     </html>

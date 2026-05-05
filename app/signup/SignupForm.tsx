@@ -35,7 +35,7 @@ export default function SignUpForm() {
 
   return (
     <div className="w-full max-w-md mx-auto">
-      <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur p-8 shadow-2xl">
+      <div className="rounded-[1.5rem] border border-white/10 bg-white/5 p-8 shadow-2xl backdrop-blur-xl">
         {sent ? (
           <p className="text-center text-white">Check your email for a secure login link.</p>
         ) : (
@@ -49,19 +49,19 @@ export default function SignUpForm() {
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 autoComplete="email"
-                className="mt-2 w-full rounded-xl border border-white/10 bg-white px-4 py-3 text-slate-950 outline-none focus:ring-2 focus:ring-slate-400"
+                className="mt-2 w-full rounded-2xl border border-white/10 bg-white px-4 py-3 text-slate-950 outline-none transition focus:ring-2 focus:ring-slate-400"
               />
             </div>
 
             <button
               type="submit"
               disabled={loading}
-              className="w-full rounded-xl bg-white px-4 py-3 font-semibold text-slate-950 hover:bg-slate-200 transition disabled:opacity-60"
+              className="w-full rounded-2xl bg-white px-4 py-3 font-semibold text-slate-950 transition hover:bg-slate-200 disabled:opacity-60"
             >
               {loading ? 'Sending...' : 'Send magic link'}
             </button>
 
-            {error && <p className="text-red-400 text-sm">{error}</p>}
+            {error && <p className="text-sm text-red-300">{error}</p>}
           </form>
         )}
       </div>

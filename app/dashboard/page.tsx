@@ -2,10 +2,10 @@ import Link from "next/link";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
 
 const outcomes = [
-  { label: "24/7 Answering", value: "Never miss the call" },
-  { label: "Lead Capture", value: "Name, intent, routing" },
-  { label: "Follow-Up", value: "Auto handoff and next step" },
-  { label: "Transcripts", value: "Call summary and context" },
+  { label: "Answered calls", value: "24/7" },
+  { label: "Leads captured", value: "Auto" },
+  { label: "Billing status", value: "Ready" },
+  { label: "Delivery", value: "Live" },
 ];
 
 const controls = [
@@ -51,7 +51,7 @@ export default async function DashboardPage() {
     <main className="min-h-screen bg-slate-50 px-6 py-8 text-slate-950">
       <section className="mx-auto max-w-7xl">
         <div className="grid gap-6 lg:grid-cols-[1.6fr_1fr]">
-          <div className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
+          <div className="premium-surface p-8">
             <div className="flex items-center gap-4">
               <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-950 text-lg font-semibold text-white">
                 {initials}
@@ -75,19 +75,19 @@ export default async function DashboardPage() {
             </div>
 
             <div className="mt-8 flex flex-wrap gap-3">
-              <Link href="/pricing" className="rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold text-white hover:bg-slate-800">
+              <Link href="/pricing" className="rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold text-white shadow-[0_18px_50px_-18px_rgba(15,23,42,0.55)] hover:bg-slate-800">
                 Upgrade plan
               </Link>
-              <Link href="/api/billing/portal" className="rounded-full border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-800 hover:bg-slate-100">
+              <Link href="/api/billing/portal" className="rounded-full border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-800 shadow-sm hover:bg-slate-50">
                 Open billing portal
               </Link>
             </div>
 
-            <div className="mt-10 rounded-3xl border border-slate-200 bg-slate-50 p-6">
-              <h2 className="text-xl font-semibold">What the customer gets</h2>
+            <div className="mt-10 rounded-[1.5rem] border border-slate-200 bg-slate-50 p-6">
+              <h2 className="text-xl font-semibold text-slate-950">What the customer gets</h2>
               <div className="mt-5 grid gap-4 md:grid-cols-2">
                 {controls.map((item) => (
-                  <div key={item} className="rounded-2xl border border-slate-200 bg-white p-5 text-sm text-slate-700">
+                  <div key={item} className="rounded-2xl border border-slate-200 bg-white p-5 text-sm text-slate-700 shadow-sm">
                     {item}
                   </div>
                 ))}
@@ -95,7 +95,7 @@ export default async function DashboardPage() {
             </div>
           </div>
 
-          <aside className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
+          <aside className="premium-surface p-8">
             <div className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-500">
               Account status
             </div>
